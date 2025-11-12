@@ -1,14 +1,17 @@
 
 import React from 'react';
 import MagicBento from '../components/MagicBento';
-import { User as FirebaseUser } from 'firebase/auth';
+// FIX: Use Firebase compat imports to get User type
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
 import { sampleAnalyticsData } from '../types';
 import Card from '../components/Card';
 import Icon from '../components/Icon';
 
 interface DashboardProps {
     onTabChange: (tabId: string) => void;
-    user: FirebaseUser | null;
+    // FIX: Use firebase.User type from compat library
+    user: firebase.User | null;
 }
 
 const StatCard: React.FC<{ icon: string; label: string; value: string; className?: string }> = ({ icon, label, value, className }) => (

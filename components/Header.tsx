@@ -3,11 +3,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import Icon from './Icon';
 import ThemeSwitch from './ThemeSwitch';
 import { Theme } from '../types';
-import { User as FirebaseUser } from 'firebase/auth';
+// FIX: Use Firebase compat imports to get User type
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
 
 interface HeaderProps {
   title: string;
-  user: FirebaseUser | null;
+  // FIX: Use firebase.User type from compat library
+  user: firebase.User | null;
   onLogout: () => void;
   onSettingsClick: () => void;
   onAppSettingsClick: () => void;

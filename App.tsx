@@ -18,11 +18,14 @@ import Reporting from './pages/Reporting';
 import { AlertContainer } from './components/Alert';
 import { AlertMessage, Theme } from './types';
 import { auth } from './services/firebase';
-import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
+// FIX: Use Firebase compat imports
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
 import Loader from './components/Loader';
 
 const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  // FIX: Use firebase.User type from compat library
+  const [currentUser, setCurrentUser] = useState<firebase.User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [alerts, setAlerts] = useState<AlertMessage[]>([]);
@@ -60,7 +63,8 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    // FIX: Use Firebase compat API for onAuthStateChanged
+    const unsubscribe = auth.onAuthStateChanged((user) => {
       setCurrentUser(user);
       setIsAuthLoading(false);
       if (user && activeTab === 'login') {
@@ -120,7 +124,8 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-        await signOut(auth);
+        // FIX: Use Firebase compat API for signOut
+        await auth.signOut();
         setActiveTab('dashboard');
         addAlert('You have been logged out.', 'info');
     } catch (error) {

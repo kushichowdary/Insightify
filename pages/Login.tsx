@@ -3,13 +3,9 @@ import React, { useState } from 'react';
 import Icon from '../components/Icon';
 import DotGrid from '../components/DotGrid';
 import { auth } from '../services/firebase';
-import { 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
-    GoogleAuthProvider, 
-    signInWithPopup,
-    updateProfile
-} from 'firebase/auth';
+// FIX: Use Firebase compat imports
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
 import { AlertType } from '../types';
 
 interface LoginProps {
@@ -45,12 +41,15 @@ const Login: React.FC<LoginProps> = ({ addAlert }) => {
     setIsLoading(true);
     try {
       if (isLoginView) {
-        await signInWithEmailAndPassword(auth, email, password);
+        // FIX: Use Firebase compat API
+        await auth.signInWithEmailAndPassword(email, password);
         // App.tsx's onAuthStateChanged will handle UI updates
       } else {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // FIX: Use Firebase compat API
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         if (userCredential.user) {
-          await updateProfile(userCredential.user, { displayName: fullName });
+          // FIX: Use Firebase compat API
+          await userCredential.user.updateProfile({ displayName: fullName });
         }
         // App.tsx's onAuthStateChanged will handle UI updates
       }
@@ -63,9 +62,11 @@ const Login: React.FC<LoginProps> = ({ addAlert }) => {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    const provider = new GoogleAuthProvider();
+    // FIX: Use Firebase compat API
+    const provider = new firebase.auth.GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      // FIX: Use Firebase compat API
+      await auth.signInWithPopup(provider);
       // App.tsx's onAuthStateChanged will handle UI updates
     } catch (error: any) {
       addAlert(getFirebaseErrorMessage(error.code), 'error');
