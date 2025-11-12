@@ -1,0 +1,5 @@
+{
+  "name": "Insightify - E-Commerce Sentiment Analyzer",
+  "description": "An advanced sentiment analysis platform for e-commerce products. Analyze products via URL, upload review datasets, or check individual reviews to gain insights into customer feedback and market trends.",
+  "requestFramePermissions": []
+}
