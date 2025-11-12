@@ -87,7 +87,7 @@ const parseSection = (header, content) => {
     return match ? match[1].trim() : '';
 };
 
-const parseList = (rawText) => rawText.split('\n').map(s => s.replace(/^-|\*|•/,'').trim()).filter(Boolean);
+const parseList = (rawText) => rawText.split('\\n').map(s => s.replace(/^-|\\*|•/,'').trim()).filter(Boolean);
 
 // Generic function for calling Gemini with search and a custom parser
 const callGeminiWithSearchAndParse = async (res, modelName, prompt, parser) => {
@@ -124,7 +124,7 @@ const brandReputationParser = (text) => {
     };
     
     const scoreText = parseSection('Overall Score', text);
-    const overallScore = parseFloat(scoreText.match(/(\d+(\.\d+)?)/)?.[0] || '0');
+    const overallScore = parseFloat(scoreText.match(/(\\d+(\\.\\d+)?)/)?.[0] || '0');
     const sentiment = scoreText.includes('Positive') ? 'Positive' : scoreText.includes('Negative') ? 'Negative' : 'Neutral';
     const summary = parseSection('Summary', text);
     
@@ -163,10 +163,10 @@ const brandReputationParser = (text) => {
 // Parser for Market Pulse Analysis
 const marketPulseParser = (text) => {
     const sentimentText = parseSection('Market Sentiment', text);
-    const marketSentiment = parseFloat(sentimentText.match(/(\d+)/)?.[0] || '0');
+    const marketSentiment = parseFloat(sentimentText.match(/(\\d+)/)?.[0] || '0');
 
     const opportunityText = parseSection('Opportunity Score', text);
-    const opportunityScore = parseFloat(opportunityText.match(/(\d+)/)?.[0] || '0');
+    const opportunityScore = parseFloat(opportunityText.match(/(\\d+)/)?.[0] || '0');
 
     const summary = parseSection('Summary', text);
     const trendingFeatures = parseList(parseSection('Trending Features', text));
@@ -195,7 +195,7 @@ app.post('/api/analyze-url', (req, res) => {
 app.post('/api/analyze-file', (req, res) => {
     const { fileContent } = req.body;
     if (!fileContent) return res.status(400).json({ error: 'File content is required.' });
-    const prompt = `Analyze the following text which contains multiple product reviews. Provide the total number of reviews found. Calculate the sentiment distribution as percentages for positive, negative, and neutral (summing to 100). Extract the top 4 most common positive and top 4 negative keywords from the entire text. Here is the review data: \n\n${fileContent}`;
+    const prompt = `Analyze the following text which contains multiple product reviews. Provide the total number of reviews found. Calculate the sentiment distribution as percentages for positive, negative, and neutral (summing to 100). Extract the top 4 most common positive and top 4 negative keywords from the entire text. Here is the review data: \\n\\n${fileContent}`;
     const schema = {
         type: Type.OBJECT,
         properties: {
@@ -262,14 +262,14 @@ app.post('/api/compare-products', (req, res) => {
 app.post('/api/analyze-brand', (req, res) => {
     const { brandName } = req.body;
     if (!brandName) return res.status(400).json({ error: 'Brand name is required.' });
-    const prompt = `Perform a comprehensive brand reputation analysis for the brand "${brandName}" using up-to-date information from the web. Structure your response in Markdown with the following exact headers:\n\n### Overall Score\nProvide a score out of 10 and a one-word sentiment (Positive, Negative, or Neutral). Example: 8.5/10 (Positive)\n\n### Summary\nProvide a 2-3 sentence summary of the brand's current reputation.\n\n### Key Themes\n- **Positive:** (3-5 bullet points)\n- **Negative:** (3-5 bullet points)\n- **Neutral:** (2-3 bullet points)\n\n### Recent News\nSummarize 3-4 recent significant news events or public discussions in bullet points.\n\n### SWOT Analysis\n- **Strengths:** (2-3 bullet points)\n- **Weaknesses:** (2-3 bullet points)\n- **Opportunities:** (2-3 bullet points)\n- **Threats:** (2-3 bullet points)`;
+    const prompt = `Perform a comprehensive brand reputation analysis for the brand "${brandName}" using up-to-date information from the web. Structure your response in Markdown with the following exact headers:\\n\\n### Overall Score\\nProvide a score out of 10 and a one-word sentiment (Positive, Negative, or Neutral). Example: 8.5/10 (Positive)\\n\\n### Summary\\nProvide a 2-3 sentence summary of the brand's current reputation.\\n\\n### Key Themes\\n- **Positive:** (3-5 bullet points)\\n- **Negative:** (3-5 bullet points)\\n- **Neutral:** (2-3 bullet points)\\n\\n### Recent News\\nSummarize 3-4 recent significant news events or public discussions in bullet points.\\n\\n### SWOT Analysis\\n- **Strengths:** (2-3 bullet points)\\n- **Weaknesses:** (2-3 bullet points)\\n- **Opportunities:** (2-3 bullet points)\\n- **Threats:** (2-3 bullet points)`;
     callGeminiWithSearchAndParse(res, 'gemini-2.5-pro', prompt, brandReputationParser);
 });
 
 app.post('/api/market-pulse', (req, res) => {
     const { category } = req.body;
     if (!category) return res.status(400).json({ error: 'Category is required.' });
-    const prompt = `Perform a market pulse analysis for the product category "${category}" using current web data. Structure your response in Markdown with the following exact headers:\n\n### Market Sentiment\nProvide a single percentage representing positive sentiment. Example: 78%\n\n### Opportunity Score\nProvide a score out of 100 indicating market opportunity for new products. Example: 85/100\n\n### Summary\nProvide a 2-3 sentence summary of the current market landscape for this category.\n\n### Trending Features\nList 4-6 key features consumers are currently excited about, as bullet points.\n\n### Consumer Pain Points\nList 4-6 common complaints or desired improvements from consumers, as bullet points.\n\n### Top Brands\nList the top 3-5 brands dominating the conversation in this category, as bullet points.`;
+    const prompt = `Perform a market pulse analysis for the product category "${category}" using current web data. Structure your response in Markdown with the following exact headers:\\n\\n### Market Sentiment\\nProvide a single percentage representing positive sentiment. Example: 78%\\n\\n### Opportunity Score\\nProvide a score out of 100 indicating market opportunity for new products. Example: 85/100\\n\\n### Summary\\nProvide a 2-3 sentence summary of the current market landscape for this category.\\n\\n### Trending Features\\nList 4-6 key features consumers are currently excited about, as bullet points.\\n\\n### Consumer Pain Points\\nList 4-6 common complaints or desired improvements from consumers, as bullet points.\\n\\n### Top Brands\\nList the top 3-5 brands dominating the conversation in this category, as bullet points.`;
     callGeminiWithSearchAndParse(res, 'gemini-2.5-pro', prompt, marketPulseParser);
 });
 
@@ -300,6 +300,4 @@ app.post('/api/dataset-qa', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-  console.log(`Insightify backend listening at http://localhost:${port}`);
-});
+module.exports = app;
