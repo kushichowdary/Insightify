@@ -14,6 +14,7 @@ import Settings from './pages/Settings';
 import AppSettings from './pages/AppSettings';
 import CompetitiveAnalysis from './pages/CompetitiveAnalysis';
 import BrandReputation from './pages/BrandReputation';
+import MarketPulse from './pages/MarketPulse';
 import Reporting from './pages/Reporting';
 import DatasetQA from './pages/DatasetQA';
 import { AlertContainer } from './components/Alert';
@@ -99,6 +100,7 @@ const App: React.FC = () => {
     'single-review': 'Single Review Analysis',
     'competitive-analysis': 'Competitive Analysis',
     'brand-reputation': 'Brand Reputation Analysis',
+    'market-pulse': 'Market Pulse Analysis',
     'dataset-qa': 'Dataset Q&A',
     analytics: 'Analytics Dashboard',
     reporting: 'Reporting',
@@ -115,6 +117,7 @@ const App: React.FC = () => {
       case 'single-review': return <SingleReview addAlert={addAlert} />;
       case 'competitive-analysis': return <CompetitiveAnalysis addAlert={addAlert} />;
       case 'brand-reputation': return <BrandReputation addAlert={addAlert} />;
+      case 'market-pulse': return <MarketPulse addAlert={addAlert} />;
       case 'dataset-qa': return <DatasetQA addAlert={addAlert} />;
       case 'analytics': return <Analytics addAlert={addAlert} />;
       case 'reporting': return <Reporting addAlert={addAlert} />;

@@ -1,6 +1,6 @@
 
 
-import { ProductAnalysisResult, FileAnalysisResult, SingleReviewResult, CompetitiveAnalysisResult, BrandReputationResult } from '../types';
+import { ProductAnalysisResult, FileAnalysisResult, SingleReviewResult, CompetitiveAnalysisResult, BrandReputationResult, MarketPulseResult } from '../types';
 
 const API_BASE_URL = '/api';
 
@@ -53,6 +53,15 @@ export const analyzeBrandReputation = async (brandName: string): Promise<BrandRe
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ brandName }),
+    });
+    return handleResponse(response);
+}
+
+export const getMarketPulse = async (category: string): Promise<MarketPulseResult> => {
+    const response = await fetch(`${API_BASE_URL}/market-pulse`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category }),
     });
     return handleResponse(response);
 }

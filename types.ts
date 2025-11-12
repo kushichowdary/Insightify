@@ -69,6 +69,19 @@ export interface BrandReputationResult {
   }[];
 }
 
+export interface MarketPulseResult {
+  marketSentiment: number;
+  opportunityScore: number;
+  summary: string;
+  trendingFeatures: string[];
+  consumerPainPoints: string[];
+  topBrands: string[];
+  sources: {
+    title: string;
+    uri: string;
+  }[];
+}
+
 export type AlertType = 'success' | 'error' | 'info';
 
 export interface AlertMessage {
