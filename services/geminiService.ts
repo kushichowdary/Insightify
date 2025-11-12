@@ -1,7 +1,8 @@
 
-import { ProductAnalysisResult, FileAnalysisResult, SingleReviewResult, CompetitiveAnalysisResult } from '../types';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+import { ProductAnalysisResult, FileAnalysisResult, SingleReviewResult, CompetitiveAnalysisResult, BrandReputationResult } from '../types';
+
+const API_BASE_URL = '/api';
 
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
@@ -45,6 +46,15 @@ export const compareProducts = async (url1: string, url2: string): Promise<Compe
     body: JSON.stringify({ url1, url2 }),
   });
   return handleResponse(response);
+}
+
+export const analyzeBrandReputation = async (brandName: string): Promise<BrandReputationResult> => {
+    const response = await fetch(`${API_BASE_URL}/analyze-brand`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brandName }),
+    });
+    return handleResponse(response);
 }
 
 export const getSentimentTrends = async (): Promise<{ month: string; positive: number; negative: number; neutral: number; }[]> => {

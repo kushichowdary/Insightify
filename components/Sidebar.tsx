@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import Icon from './Icon';
 
@@ -8,6 +9,8 @@ interface SidebarProps {
   onLogout: () => void;
   isExpanded: boolean;
   onHoverChange: (isExpanded: boolean) => void;
+  isPinned: boolean;
+  onPinToggle: () => void;
 }
 
 const navItems = [
@@ -16,12 +19,13 @@ const navItems = [
   { id: 'file-upload', label: 'File Upload', icon: 'upload' },
   { id: 'single-review', label: 'Single Review', icon: 'edit' },
   { id: 'competitive-analysis', label: 'Competitor Analysis', icon: 'balance-scale' },
+  { id: 'brand-reputation', label: 'Brand Reputation', icon: 'bullhorn' },
   { id: 'analytics', label: 'Analytics', icon: 'chart-bar' },
   { id: 'reporting', label: 'Reporting', icon: 'file-invoice' },
   { id: 'admin', label: 'Admin Panel', icon: 'cogs' },
 ];
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout, isExpanded, onHoverChange }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout, isExpanded, onHoverChange, isPinned, onPinToggle }) => {
   const NavLink: React.FC<{ item: typeof navItems[0] }> = ({ item }) => (
     <li className="relative group mb-3">
       <a
@@ -91,8 +95,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout, isE
     >
       {/* Header */}
       <div
-        className={`py-5 border-b border-white/10 transition-all duration-500 ${
-          isExpanded ? 'px-6' : 'px-0'
+        className={`py-5 border-b border-white/10 transition-all duration-500 flex items-center ${
+          isExpanded ? 'px-6 justify-between' : 'px-0 justify-center'
         }`}
       >
         <h2
@@ -104,6 +108,19 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout, isE
           <Icon name="chart-line" />
           {isExpanded && <span>Insightify</span>}
         </h2>
+        {isExpanded && (
+           <button 
+            onClick={onPinToggle} 
+            className="p-1 text-white/60 hover:text-white transition-all duration-300" 
+            title={isPinned ? 'Unpin sidebar' : 'Pin sidebar'}
+            aria-label={isPinned ? 'Unpin sidebar' : 'Pin sidebar'}
+          >
+            <Icon 
+              name="thumbtack" 
+              className={`transform transition-transform duration-300 ${isPinned ? 'rotate-45 text-magenta-300' : 'rotate-0'}`} 
+            />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}

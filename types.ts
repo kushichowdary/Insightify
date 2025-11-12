@@ -1,4 +1,5 @@
 
+
 export type Sentiment = 'Positive' | 'Negative' | 'Neutral';
 
 // FIX: Add and export the 'Theme' type.
@@ -44,6 +45,28 @@ export interface CompetitiveAnalysisResult {
   productOne: ProductAnalysisResult;
   productTwo: ProductAnalysisResult;
   comparisonSummary: string;
+}
+
+export interface BrandReputationResult {
+  overallScore: number;
+  sentiment: Sentiment;
+  summary: string;
+  keyThemes: {
+    positive: string[];
+    negative: string[];
+    neutral: string[];
+  };
+  recentNews: string[];
+  swot: {
+    strengths: string[];
+    weaknesses: string[];
+    opportunities: string[];
+    threats: string[];
+  };
+  sources: {
+    title: string;
+    uri: string;
+  }[];
 }
 
 export type AlertType = 'success' | 'error' | 'info';

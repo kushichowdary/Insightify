@@ -10,7 +10,13 @@ const port = 3001;
 app.use(cors());
 app.use(bodyParser.json());
 
-const ai = new GoogleGenAI({ apiKey: 'AIzaSyDw_lRHYW48K-YMZS785dDHqPBDvEGPq9w' });
+const apiKey = process.env.API_KEY;
+if (!apiKey) {
+  console.error("FATAL ERROR: API_KEY environment variable is not set.");
+  // In a real production app, you might want to `process.exit(1)`
+}
+
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 const productAnalysisSchema = {
   type: Type.OBJECT,
@@ -59,6 +65,81 @@ const callGemini = async (res, modelName, prompt, schema) => {
     } catch (error) {
         console.error('Error calling Gemini API:', error);
         res.status(500).json({ error: 'Failed to get response from AI model.' });
+    }
+};
+
+const callGeminiWithSearch = async (res, modelName, prompt) => {
+    try {
+        const response = await ai.models.generateContent({
+            model: modelName,
+            contents: prompt,
+            config: {
+                tools: [{googleSearch: {}}],
+            },
+        });
+        
+        const text = response.text;
+        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
+            ?.map(chunk => chunk.web && { title: chunk.web.title, uri: chunk.web.uri })
+            .filter(Boolean) || [];
+        
+        const parseSection = (header, content) => {
+            const regex = new RegExp(`### ${header}\\n([\\s\\S]*?)(?:\\n###|$)`);
+            const match = content.match(regex);
+            return match ? match[1].trim() : '';
+        };
+
+        const parseList = (rawText) => rawText.split('\n').map(s => s.replace(/^-|\*|•/,'').trim()).filter(Boolean);
+
+        const parseSubList = (rawText, subheader) => {
+            const regex = new RegExp(`- \\*\\*${subheader}:\\*\\*([\\s\\S]*?)(?:\\n- \\*\\*|$)`);
+            const match = rawText.match(regex);
+            return match ? parseList(match[1]) : [];
+        };
+        
+        const scoreText = parseSection('Overall Score', text);
+        const overallScore = parseFloat(scoreText.match(/(\d+(\.\d+)?)/)?.[0] || '0');
+        const sentiment = scoreText.includes('Positive') ? 'Positive' : scoreText.includes('Negative') ? 'Negative' : 'Neutral';
+
+        const summary = parseSection('Summary', text);
+        
+        const themesText = parseSection('Key Themes', text);
+        const positiveThemes = parseSubList(themesText, 'Positive');
+        const negativeThemes = parseSubList(themesText, 'Negative');
+        const neutralThemes = parseSubList(themesText, 'Neutral');
+        
+        const recentNews = parseList(parseSection('Recent News', text));
+        
+        const swotText = parseSection('SWOT Analysis', text);
+        const strengths = parseSubList(swotText, 'Strengths');
+        const weaknesses = parseSubList(swotText, 'Weaknesses');
+        const opportunities = parseSubList(swotText, 'Opportunities');
+        const threats = parseSubList(swotText, 'Threats');
+
+        const result = {
+            overallScore,
+            sentiment,
+            summary,
+            keyThemes: {
+                positive: positiveThemes,
+                negative: negativeThemes,
+                neutral: neutralThemes,
+            },
+            recentNews,
+            swot: {
+                strengths,
+                weaknesses,
+                opportunities,
+                threats,
+            },
+            sources,
+        };
+        
+        res.json(result);
+
+    } catch (error) {
+        console.error('Error calling Gemini API with search:', error);
+        res.status(500).json({ error: 'Failed to get response from AI model with search grounding.' });
     }
 };
 
@@ -145,6 +226,15 @@ app.post('/api/compare-products', (req, res) => {
     };
 
     callGemini(res, 'gemini-2.5-pro', prompt, schema);
+});
+
+app.post('/api/analyze-brand', (req, res) => {
+    const { brandName } = req.body;
+    if (!brandName) return res.status(400).json({ error: 'Brand name is required.' });
+
+    const prompt = `Perform a comprehensive brand reputation analysis for the brand "${brandName}" using up-to-date information from the web. Structure your response in Markdown with the following exact headers:\n\n### Overall Score\nProvide a score out of 10 and a one-word sentiment (Positive, Negative, or Neutral). Example: 8.5/10 (Positive)\n\n### Summary\nProvide a 2-3 sentence summary of the brand's current reputation.\n\n### Key Themes\n- **Positive:** (3-5 bullet points)\n- **Negative:** (3-5 bullet points)\n- **Neutral:** (2-3 bullet points)\n\n### Recent News\nSummarize 3-4 recent significant news events or public discussions in bullet points.\n\n### SWOT Analysis\n- **Strengths:** (2-3 bullet points)\n- **Weaknesses:** (2-3 bullet points)\n- **Opportunities:** (2-3 bullet points)\n- **Threats:** (2-3 bullet points)`;
+    
+    callGeminiWithSearch(res, 'gemini-2.5-pro', prompt);
 });
 
 

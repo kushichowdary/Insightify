@@ -13,8 +13,9 @@
     "react-dom": "^19.2.0",
     "@google/genai": "^1.26.0",
     "recharts": "^3.3.0",
-    "gsap": "^3.13.0",
-    "styled-components": "^6.1.12"
+    "gsap": "^13.13.0",
+    "styled-components": "^6.1.12",
+    "firebase": "^12.5.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

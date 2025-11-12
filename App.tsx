@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -12,16 +13,30 @@ import Login from './pages/Login';
 import Settings from './pages/Settings';
 import AppSettings from './pages/AppSettings';
 import CompetitiveAnalysis from './pages/CompetitiveAnalysis';
+import BrandReputation from './pages/BrandReputation';
 import Reporting from './pages/Reporting';
 import { AlertContainer } from './components/Alert';
 import { AlertMessage, Theme } from './types';
+import { auth } from './services/firebase';
+import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
+import Loader from './components/Loader';
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [alerts, setAlerts] = useState<AlertMessage[]>([]);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  
+  const [isSidebarPinned, setIsSidebarPinned] = useState(false);
+  const [isHoveringSidebar, setIsHoveringSidebar] = useState(false);
+  const isSidebarExpanded = isSidebarPinned || isHoveringSidebar;
+
   const [theme, setTheme] = useState<Theme>('dark');
+  
+  const addAlert = useCallback((message: string, type: 'success' | 'error' | 'info') => {
+    const id = Date.now();
+    setAlerts(prevAlerts => [...prevAlerts, { id, message, type }]);
+  }, []);
 
   useEffect(() => {
     // Apply theme from localStorage on initial load
@@ -45,6 +60,17 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      setIsAuthLoading(false);
+      if (user && activeTab === 'login') {
+         setActiveTab('dashboard');
+      }
+    });
+    return () => unsubscribe();
+  }, [activeTab]);
+
+  useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -57,11 +83,6 @@ const App: React.FC = () => {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
   };
 
-  const addAlert = useCallback((message: string, type: 'success' | 'error' | 'info') => {
-    const id = Date.now();
-    setAlerts(prevAlerts => [...prevAlerts, { id, message, type }]);
-  }, []);
-
   const dismissAlert = useCallback((id: number) => {
     setAlerts(prevAlerts => prevAlerts.filter(alert => alert.id !== id));
   }, []);
@@ -72,6 +93,7 @@ const App: React.FC = () => {
     'file-upload': 'File Upload Analysis',
     'single-review': 'Single Review Analysis',
     'competitive-analysis': 'Competitive Analysis',
+    'brand-reputation': 'Brand Reputation Analysis',
     analytics: 'Analytics Dashboard',
     reporting: 'Reporting',
     admin: 'Admin Panel',
@@ -81,36 +103,41 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return <Dashboard onTabChange={setActiveTab} />;
+      case 'dashboard': return <Dashboard onTabChange={setActiveTab} user={currentUser} />;
       case 'url-analysis': return <UrlAnalysis addAlert={addAlert} />;
       case 'file-upload': return <FileUpload addAlert={addAlert} />;
       case 'single-review': return <SingleReview addAlert={addAlert} />;
       case 'competitive-analysis': return <CompetitiveAnalysis addAlert={addAlert} />;
+      case 'brand-reputation': return <BrandReputation addAlert={addAlert} />;
       case 'analytics': return <Analytics addAlert={addAlert} />;
       case 'reporting': return <Reporting addAlert={addAlert} />;
       case 'admin': return <Admin addAlert={addAlert} />;
       case 'settings': return <Settings addAlert={addAlert} />;
       case 'app-settings': return <AppSettings addAlert={addAlert} theme={theme} onToggleTheme={toggleTheme} />;
-      default: return <Dashboard onTabChange={setActiveTab} />;
+      default: return <Dashboard onTabChange={setActiveTab} user={currentUser} />;
     }
   };
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-    addAlert('Login successful! Welcome back.', 'success');
+  const handleLogout = async () => {
+    try {
+        await signOut(auth);
+        setActiveTab('dashboard');
+        addAlert('You have been logged out.', 'info');
+    } catch (error) {
+        console.error("Logout error", error);
+        addAlert('Failed to log out.', 'error');
+    }
   }
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setActiveTab('dashboard');
-    addAlert('You have been logged out.', 'info');
+  if (isAuthLoading) {
+    return <Loader message="Authenticating..." />;
   }
 
-  if (!isAuthenticated) {
+  if (!currentUser) {
     return (
         <>
             <AlertContainer alerts={alerts} onDismiss={dismissAlert} />
-            <Login onLogin={handleLogin} />
+            <Login addAlert={addAlert} />
         </>
     );
   }
@@ -126,12 +153,15 @@ const App: React.FC = () => {
           onTabChange={setActiveTab}
           onLogout={handleLogout}
           isExpanded={isSidebarExpanded}
-          onHoverChange={setIsSidebarExpanded}
+          onHoverChange={setIsHoveringSidebar}
+          isPinned={isSidebarPinned}
+          onPinToggle={() => setIsSidebarPinned(prev => !prev)}
         />
        )}
       <main className={`flex-1 flex flex-col transition-all duration-700 ease-in-out ${!isDashboard ? (isSidebarExpanded ? 'ml-64' : 'ml-20') : ''}`}>
         {!isDashboard && <Header 
-            title={pageTitles[activeTab] || 'Dashboard'} 
+            title={pageTitles[activeTab] || 'Dashboard'}
+            user={currentUser}
             onLogout={handleLogout} 
             onSettingsClick={() => setActiveTab('settings')}
             onAppSettingsClick={() => setActiveTab('app-settings')}
