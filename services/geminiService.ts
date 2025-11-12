@@ -57,6 +57,15 @@ export const analyzeBrandReputation = async (brandName: string): Promise<BrandRe
     return handleResponse(response);
 }
 
+export const queryDataset = async (datasetId: string, question: string): Promise<{ answer: string }> => {
+  const response = await fetch(`${API_BASE_URL}/dataset-qa`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ datasetId, question }),
+  });
+  return handleResponse(response);
+};
+
 export const getSentimentTrends = async (): Promise<{ month: string; positive: number; negative: number; neutral: number; }[]> => {
   return new Promise(resolve => {
     setTimeout(() => {

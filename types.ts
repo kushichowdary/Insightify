@@ -98,6 +98,11 @@ export interface User {
   }
 }
 
+export interface ChatMessage {
+  sender: 'user' | 'ai';
+  text: string;
+}
+
 export const sampleDatasets: Dataset[] = [
     { id: 1, name: 'Amazon Electronics Reviews Q2', reviewCount: 45632, lastUpdated: '2 days ago' },
     { id: 2, name: 'Flipkart Fashion Customer Feedback', reviewCount: 10245, lastUpdated: '1 week ago' },

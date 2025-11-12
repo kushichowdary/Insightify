@@ -20,6 +20,7 @@ const navItems = [
   { id: 'single-review', label: 'Single Review', icon: 'edit' },
   { id: 'competitive-analysis', label: 'Competitor Analysis', icon: 'balance-scale' },
   { id: 'brand-reputation', label: 'Brand Reputation', icon: 'bullhorn' },
+  { id: 'dataset-qa', label: 'Dataset Q&A', icon: 'question-circle' },
   { id: 'analytics', label: 'Analytics', icon: 'chart-bar' },
   { id: 'reporting', label: 'Reporting', icon: 'file-invoice' },
   { id: 'admin', label: 'Admin Panel', icon: 'cogs' },
