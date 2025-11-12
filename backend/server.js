@@ -1,4 +1,3 @@
-
 const express = require('express');
 const { GoogleGenAI, Type } = require('@google/genai');
 const cors = require('cors');
@@ -11,7 +10,7 @@ const port = 3001;
 app.use(cors());
 app.use(bodyParser.json());
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: 'AIzaSyDw_lRHYW48K-YMZS785dDHqPBDvEGPq9w' });
 
 const productAnalysisSchema = {
   type: Type.OBJECT,
