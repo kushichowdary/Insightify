@@ -10,6 +10,7 @@ import Analytics from './pages/Analytics';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
+import AppSettings from './pages/AppSettings';
 import CompetitiveAnalysis from './pages/CompetitiveAnalysis';
 import Reporting from './pages/Reporting';
 import { AlertContainer } from './components/Alert';
@@ -23,11 +24,33 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('dark');
 
   useEffect(() => {
+    // Apply theme from localStorage on initial load
+    const savedTheme = localStorage.getItem('theme') as Theme;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else {
+      // Default to user's system preference if no theme is saved
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(prefersDark ? 'dark' : 'light');
+    }
+
+    // Apply saved accent color
+    const savedColor = localStorage.getItem('brandColor');
+    const savedColorHover = localStorage.getItem('brandColorHover');
+    if (savedColor && savedColorHover) {
+      document.documentElement.style.setProperty('--color-brand-primary', savedColor);
+      document.documentElement.style.setProperty('--color-brand-primary-hover', savedColorHover);
+    }
+
+  }, []);
+
+  useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+    localStorage.setItem('theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
@@ -53,6 +76,7 @@ const App: React.FC = () => {
     reporting: 'Reporting',
     admin: 'Admin Panel',
     settings: 'Profile & Settings',
+    'app-settings': 'Application Settings',
   };
 
   const renderContent = () => {
@@ -66,6 +90,7 @@ const App: React.FC = () => {
       case 'reporting': return <Reporting addAlert={addAlert} />;
       case 'admin': return <Admin addAlert={addAlert} />;
       case 'settings': return <Settings addAlert={addAlert} />;
+      case 'app-settings': return <AppSettings addAlert={addAlert} theme={theme} onToggleTheme={toggleTheme} />;
       default: return <Dashboard onTabChange={setActiveTab} />;
     }
   };
@@ -109,6 +134,7 @@ const App: React.FC = () => {
             title={pageTitles[activeTab] || 'Dashboard'} 
             onLogout={handleLogout} 
             onSettingsClick={() => setActiveTab('settings')}
+            onAppSettingsClick={() => setActiveTab('app-settings')}
             theme={theme}
             onToggleTheme={toggleTheme}
         />}

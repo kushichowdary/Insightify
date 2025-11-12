@@ -8,11 +8,12 @@ interface HeaderProps {
   title: string;
   onLogout: () => void;
   onSettingsClick: () => void;
+  onAppSettingsClick: () => void;
   theme: Theme;
   onToggleTheme: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, onLogout, onSettingsClick, theme, onToggleTheme }) => {
+const Header: React.FC<HeaderProps> = ({ title, onLogout, onSettingsClick, onAppSettingsClick, theme, onToggleTheme }) => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -84,7 +85,7 @@ const Header: React.FC<HeaderProps> = ({ title, onLogout, onSettingsClick, theme
                 </div>
                 <div className="py-1">
                     <a href="#" onClick={(e) => { e.preventDefault(); onSettingsClick(); setProfileOpen(false); }} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"><Icon name="user-circle" /> Profile & Settings</a>
-                    <a href="#" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"><Icon name="cog" /> App Settings</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); onAppSettingsClick(); setProfileOpen(false); }} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"><Icon name="cog" /> App Settings</a>
                 </div>
                  <div className="border-t border-light-border dark:border-white/10 p-1">
                     <button onClick={onLogout} className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 rounded-md"><Icon name="sign-out-alt" /> Logout</button>

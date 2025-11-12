@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Card from '../components/Card';
 import Icon from '../components/Icon';
+import Toggle from '../components/Toggle';
 
 interface SettingsProps {
   addAlert: (message: string, type: 'success' | 'error' | 'info') => void;
@@ -11,21 +12,12 @@ const Settings: React.FC<SettingsProps> = ({ addAlert }) => {
     const commonInputClasses = "mt-1 w-full p-2.5 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:outline-none bg-light-background dark:bg-black/20 text-light-text dark:text-white placeholder-gray-500";
     const commonLabelClasses = "text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary";
     
+    const [notifications, setNotifications] = useState({ email: true, inApp: true });
+
     const handleSubmit = (e: React.FormEvent, type: string) => {
         e.preventDefault();
         addAlert(`${type} updated successfully!`, 'success');
     };
-
-    const Toggle: React.FC<{ label: string; enabled: boolean; onToggle: () => void }> = ({ label, enabled, onToggle }) => (
-        <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-light-text dark:text-dark-text">{label}</span>
-            <div className="relative">
-                <input type="checkbox" className="sr-only" checked={enabled} onChange={onToggle} />
-                <div className={`block w-14 h-8 rounded-full ${enabled ? 'bg-brand-primary' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
-                <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${enabled ? 'translate-x-6' : ''}`}></div>
-            </div>
-        </label>
-    );
 
     return (
         <div className="space-y-8 max-w-4xl mx-auto">
@@ -70,8 +62,16 @@ const Settings: React.FC<SettingsProps> = ({ addAlert }) => {
             <Card>
                 <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Notifications</h3>
                  <div className="space-y-4 max-w-sm">
-                    <Toggle label="Email Notifications" enabled={true} onToggle={() => {}} />
-                    <Toggle label="In-App Notifications" enabled={true} onToggle={() => {}} />
+                    <Toggle 
+                      label="Email Notifications" 
+                      enabled={notifications.email} 
+                      onToggle={() => setNotifications(n => ({...n, email: !n.email}))} 
+                    />
+                    <Toggle 
+                      label="In-App Notifications" 
+                      enabled={notifications.inApp} 
+                      onToggle={() => setNotifications(n => ({...n, inApp: !n.inApp}))} 
+                    />
                 </div>
             </Card>
         </div>
