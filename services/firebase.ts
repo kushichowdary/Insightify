@@ -12,9 +12,5 @@ const firebaseConfig = {
   measurementId: "G-5SWY0CYXTN"
 };
 
-if (!firebaseConfig.apiKey) {
-    throw new Error("Missing Firebase config: VITE_FIREBASE_API_KEY is not defined in your environment variables.");
-}
-
 const app = firebase.initializeApp(firebaseConfig);
 export const auth = firebase.auth();
