@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Card from '../components/Card';
@@ -60,11 +61,9 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
             setResults(data);
             addAlert('File analysis completed successfully!', 'success');
         } catch (error) {
-            console.error("Detailed file analysis error:", error);
-            const errorMessage = error instanceof Error 
-                ? (error as any).details || error.message
-                : "An unknown error occurred.";
-            addAlert(`Failed to analyze file: ${errorMessage}`, 'error');
+            console.error(error);
+            const errorMessage = error instanceof Error ? "Failed to analyze file. The model may be experiencing issues." : "An unknown error occurred.";
+            addAlert(errorMessage, 'error');
         } finally {
             setIsLoading(false);
         }

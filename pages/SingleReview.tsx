@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Card from '../components/Card';
 import Icon from '../components/Icon';
@@ -22,11 +23,9 @@ const SingleReview: React.FC<{ addAlert: (message: string, type: 'success' | 'er
       setResults(data);
       addAlert('Review analysis completed!', 'success');
     } catch (error) {
-      console.error("Detailed review analysis error:", error);
-      const errorMessage = error instanceof Error 
-        ? (error as any).details || error.message
-        : "An unknown error occurred.";
-      addAlert(`Failed to analyze review: ${errorMessage}`, 'error');
+      console.error(error);
+      const errorMessage = error instanceof Error ? "Failed to analyze review." : "An unknown error occurred.";
+      addAlert(errorMessage, 'error');
     } finally {
       setIsLoading(false);
     }
