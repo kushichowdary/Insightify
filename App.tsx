@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -15,6 +14,7 @@ import CompetitiveAnalysis from './pages/CompetitiveAnalysis';
 import Reporting from './pages/Reporting';
 import { AlertContainer } from './components/Alert';
 import { AlertMessage, Theme } from './types';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -139,7 +139,9 @@ const App: React.FC = () => {
             onToggleTheme={toggleTheme}
         />}
         <div className={`flex-1 overflow-y-auto ${!isDashboard ? 'p-8' : ''}`}>
-          {renderContent()}
+          <ErrorBoundary>
+            {renderContent()}
+          </ErrorBoundary>
         </div>
       </main>
     </div>

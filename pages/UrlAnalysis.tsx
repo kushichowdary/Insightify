@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 import Card from '../components/Card';
@@ -26,9 +25,11 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
       setResults(data);
       addAlert('URL analysis completed successfully!', 'success');
     } catch (error) {
-      console.error(error);
-      const errorMessage = error instanceof Error ? "Failed to analyze URL. The model may be experiencing high traffic." : "An unknown error occurred.";
-      addAlert(errorMessage, 'error');
+      console.error("Detailed analysis error:", error);
+      const errorMessage = error instanceof Error 
+        ? (error as any).details || error.message
+        : "An unknown error occurred.";
+      addAlert(`Failed to analyze URL: ${errorMessage}`, 'error');
     } finally {
       setIsLoading(false);
     }

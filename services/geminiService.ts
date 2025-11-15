@@ -1,12 +1,22 @@
-
 import { ProductAnalysisResult, FileAnalysisResult, SingleReviewResult, CompetitiveAnalysisResult } from '../types';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    let errorData;
+    try {
+        errorData = await response.json();
+        console.error('API Error Response:', errorData);
+    } catch (e) {
+        const textError = await response.text();
+        console.error('API Error Response (not JSON):', textError);
+        errorData = { error: textError || `HTTP error! status: ${response.status}` };
+    }
+    const error = new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    (error as any).details = errorData.details;
+    (error as any).status = response.status;
+    throw error;
   }
   return response.json();
 }

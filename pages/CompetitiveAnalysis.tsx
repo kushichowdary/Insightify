@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Card from '../components/Card';
 import Icon from '../components/Icon';
@@ -53,8 +52,11 @@ const CompetitiveAnalysis: React.FC<{ addAlert: (message: string, type: 'success
             setResults(data);
             addAlert('Competitive analysis completed successfully!', 'success');
         } catch (error) {
-            console.error(error);
-            addAlert('Failed to perform analysis. The model might be busy or one of the URLs is invalid.', 'error');
+            console.error("Detailed competitive analysis error:", error);
+            const errorMessage = error instanceof Error 
+                ? (error as any).details || error.message
+                : "An unknown error occurred.";
+            addAlert(`Failed to perform analysis: ${errorMessage}`, 'error');
         } finally {
             setIsLoading(false);
         }

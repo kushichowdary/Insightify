@@ -10,7 +10,13 @@ const port = 3001;
 app.use(cors());
 app.use(bodyParser.json());
 
-const ai = new GoogleGenAI({ apiKey: 'AIzaSyDw_lRHYW48K-YMZS785dDHqPBDvEGPq9w' });
+const apiKey = process.env.API_KEY;
+if (!apiKey) {
+    console.error("FATAL ERROR: API_KEY environment variable is not set.");
+    process.exit(1);
+}
+
+const ai = new GoogleGenAI({ apiKey });
 
 const productAnalysisSchema = {
   type: Type.OBJECT,
@@ -57,8 +63,16 @@ const callGemini = async (res, modelName, prompt, schema) => {
         const parsed = JSON.parse(response.text);
         res.json(parsed);
     } catch (error) {
-        console.error('Error calling Gemini API:', error);
-        res.status(500).json({ error: 'Failed to get response from AI model.' });
+        console.error('--- Gemini API Error ---');
+        console.error('Model:', modelName);
+        console.error('Timestamp:', new Date().toISOString());
+        console.error('Prompt:', JSON.stringify(prompt, null, 2));
+        console.error('Full Error Object:', error);
+        console.error('--- End Gemini API Error ---');
+        res.status(500).json({ 
+            error: 'Failed to get response from AI model.',
+            details: error.message 
+        });
     }
 };
 
