@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "vercel-build": "mkdir -p public && tailwindcss -i styles/index.css -o public/style.css --minify && esbuild index.tsx --bundle --outfile=public/bundle.js --jsx=automatic --external:react --external:react/* --external:react-dom/* --external:@google/genai --external:recharts --external:gsap --external:gsap/* --external:styled-components && npm install --prefix api"
+    "vercel-build": "mkdir -p public && cp index.html public/index.html && tailwindcss -i styles/index.css -o public/style.css --minify && esbuild index.tsx --bundle --outfile=public/bundle.js --jsx=automatic --external:react --external:react/* --external:react-dom/* --external:@google/genai --external:recharts --external:gsap --external:gsap/* --external:styled-components && npm install --prefix api"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",
