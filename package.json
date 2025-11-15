@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "vercel-build": "npm install --prefix api"
+    "vercel-build": "esbuild index.tsx --bundle --outfile=dist/index.js --jsx=automatic && npm install --prefix api"
+  },
+  "devDependencies": {
+    "esbuild": "^0.23.0"
   }
 }
