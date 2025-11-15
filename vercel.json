@@ -1,6 +1,6 @@
 {
   "functions": {
-    "backend/server.js": {
+    "api/server.js": {
       "memory": 1024,
       "maxDuration": 45
     }
@@ -8,7 +8,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "/backend/server.js"
+      "destination": "/api/server.js"
     }
   ]
 }
