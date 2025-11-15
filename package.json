@@ -1,25 +1,8 @@
 {
-  "name": "insightify---e-commerce-sentiment-analyzer",
+  "name": "insightify-root",
+  "version": "1.0.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "@google/genai": "^1.26.0",
-    "recharts": "^3.3.0",
-    "gsap": "^3.13.0",
-    "styled-components": "^6.1.12"
-  },
-  "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vercel-build": "npm install --prefix api"
   }
 }
