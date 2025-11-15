@@ -1,14 +1,25 @@
 {
-  "name": "insightify-root",
-  "version": "1.0.0",
+  "name": "insightify---e-commerce-sentiment-analyzer",
   "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "vercel-build": "mkdir -p public && cp index.html public/index.html && tailwindcss -i styles/index.css -o public/style.css --minify && esbuild index.tsx --bundle --outfile=public/bundle.js --jsx=automatic --external:react --external:react/* --external:react-dom/* --external:@google/genai --external:recharts --external:gsap --external:gsap/* --external:styled-components && npm install --prefix api"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "@google/genai": "^1.26.0",
+    "recharts": "^3.3.0",
+    "gsap": "^3.13.0",
+    "styled-components": "^6.1.12"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.19",
-    "esbuild": "^0.23.0",
-    "postcss": "^8.4.39",
-    "tailwindcss": "^3.4.6"
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
   }
 }
