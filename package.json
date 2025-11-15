@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "vercel-build": "esbuild index.tsx --bundle --outfile=dist/index.js --jsx=automatic --external:react --external:react/* --external:react-dom/* --external:@google/genai --external:recharts --external:gsap --external:gsap/* --external:styled-components && npm install --prefix api"
+    "vercel-build": "esbuild index.tsx --bundle --outfile=index.js --jsx=automatic --external:react --external:react/* --external:react-dom/* --external:@google/genai --external:recharts --external:gsap --external:gsap/* --external:styled-components && npm install --prefix api"
   },
   "devDependencies": {
     "esbuild": "^0.23.0"
