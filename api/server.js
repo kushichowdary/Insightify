@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 
 const app = express();
-const port = 3001;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -62,7 +61,7 @@ const callGemini = async (res, modelName, prompt, schema) => {
     }
 };
 
-app.post('/api/analyze-url', (req, res) => {
+app.post('/analyze-url', (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ error: 'URL is required.' });
 
@@ -71,7 +70,7 @@ app.post('/api/analyze-url', (req, res) => {
     callGemini(res, 'gemini-2.5-pro', prompt, productAnalysisSchema);
 });
 
-app.post('/api/analyze-file', (req, res) => {
+app.post('/analyze-file', (req, res) => {
     const { fileContent } = req.body;
     if (!fileContent) return res.status(400).json({ error: 'File content is required.' });
 
@@ -105,7 +104,7 @@ app.post('/api/analyze-file', (req, res) => {
     callGemini(res, 'gemini-2.5-flash', prompt, schema);
 });
 
-app.post('/api/analyze-review', (req, res) => {
+app.post('/analyze-review', (req, res) => {
     const { reviewText } = req.body;
     if (!reviewText) return res.status(400).json({ error: 'Review text is required.' });
 
@@ -124,7 +123,7 @@ app.post('/api/analyze-review', (req, res) => {
     callGemini(res, 'gemini-2.5-flash', prompt, schema);
 });
 
-app.post('/api/compare-products', (req, res) => {
+app.post('/compare-products', (req, res) => {
     const { url1, url2 } = req.body;
     if (!url1 || !url2) return res.status(400).json({ error: 'Two URLs are required.' });
 
@@ -148,6 +147,4 @@ app.post('/api/compare-products', (req, res) => {
 });
 
 
-app.listen(port, () => {
-  console.log(`Insightify backend listening at http://localhost:${port}`);
-});
+module.exports = app;
