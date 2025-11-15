@@ -2,86 +2,31 @@
 import React, { useState } from 'react';
 import Icon from '../components/Icon';
 import DotGrid from '../components/DotGrid';
-import { auth } from '../services/firebase';
-// FIX: Use Firebase compat imports
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
-import { AlertType } from '../types';
 
 interface LoginProps {
-  addAlert: (message: string, type: AlertType) => void;
+  onLogin: () => void;
 }
 
-const getFirebaseErrorMessage = (errorCode: string): string => {
-  switch (errorCode) {
-    case 'auth/user-not-found':
-    case 'auth/wrong-password':
-    case 'auth/invalid-credential':
-      return 'Invalid email or password.';
-    case 'auth/email-already-in-use':
-      return 'An account with this email already exists.';
-    case 'auth/weak-password':
-      return 'Password should be at least 6 characters.';
-    case 'auth/invalid-email':
-      return 'Please enter a valid email address.';
-    default:
-      return 'An unexpected error occurred. Please try again.';
-  }
-};
-
-const Login: React.FC<LoginProps> = ({ addAlert }) => {
+const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [isLoginView, setIsLoginView] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
 
-  const handleEmailPasswordAuth = async (e: React.FormEvent) => {
+  const handleAuthAction = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    try {
-      if (isLoginView) {
-        // FIX: Use Firebase compat API
-        await auth.signInWithEmailAndPassword(email, password);
-        // App.tsx's onAuthStateChanged will handle UI updates
-      } else {
-        // FIX: Use Firebase compat API
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        if (userCredential.user) {
-          // FIX: Use Firebase compat API
-          await userCredential.user.updateProfile({ displayName: fullName });
-        }
-        // App.tsx's onAuthStateChanged will handle UI updates
-      }
-    } catch (error: any) {
-      addAlert(getFirebaseErrorMessage(error.code), 'error');
-    } finally {
+    // Simulate API call
+    setTimeout(() => {
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    // FIX: Use Firebase compat API
-    const provider = new firebase.auth.GoogleAuthProvider();
-    try {
-      // FIX: Use Firebase compat API
-      await auth.signInWithPopup(provider);
-      // App.tsx's onAuthStateChanged will handle UI updates
-    } catch (error: any) {
-      addAlert(getFirebaseErrorMessage(error.code), 'error');
-    } finally {
-      setIsLoading(false);
-    }
+      onLogin(); // For both login and signup for this demo
+    }, 1000);
   };
 
   const commonInputClasses = "mt-1 w-full p-3 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-brand-primary focus:outline-none bg-light-surface/50 dark:bg-black/20 text-light-text dark:text-white placeholder-gray-400 transition-all";
   const commonLabelClasses = "text-sm font-medium text-light-text-secondary dark:text-gray-300";
   
-  const AuthButton: React.FC<{ children: React.ReactNode, onClick?: () => void, type?: 'submit' | 'button' }> = ({ children, onClick, type = 'submit' }) => (
+  const AuthButton: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <button
-      type={type}
-      onClick={onClick}
+      type="submit"
       disabled={isLoading}
       className="w-full py-3 bg-brand-primary text-white font-semibold rounded-lg hover:bg-brand-primary-hover disabled:bg-slate-500 dark:disabled:bg-slate-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-magenta-500/30 hover:shadow-glow-magenta"
     >
@@ -89,44 +34,48 @@ const Login: React.FC<LoginProps> = ({ addAlert }) => {
     </button>
   );
 
-  const OrSeparator = () => (
-    <div className="flex items-center my-4">
-      <hr className="flex-grow border-light-border dark:border-dark-border" />
-      <span className="mx-4 text-xs text-light-text-secondary dark:text-dark-text-secondary">OR</span>
-      <hr className="flex-grow border-light-border dark:border-dark-border" />
-    </div>
-  );
-
-  const AuthForm = () => (
-     <form onSubmit={handleEmailPasswordAuth} className="space-y-6 animate-fade-in">
-        {!isLoginView && (
-            <div>
-                <label className={commonLabelClasses}>Full Name</label>
-                <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} className={commonInputClasses} required />
-            </div>
-        )}
+  const LoginForm = () => (
+     <form onSubmit={handleAuthAction} className="space-y-6 animate-fade-in">
         <div>
             <label className={commonLabelClasses}>Email Address</label>
             <input 
-                type="email" 
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className={commonInputClasses} 
-                required 
+            type="email" 
+            defaultValue="analyst@company.com"
+            className={commonInputClasses} 
+            required 
             />
         </div>
         <div>
             <label className={commonLabelClasses}>Password</label>
             <input 
-                type="password" 
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className={commonInputClasses} 
-                required 
+            type="password" 
+            defaultValue="password"
+            className={commonInputClasses} 
+            required 
             />
         </div>
         <AuthButton>
-            {isLoading ? (isLoginView ? 'Logging in...' : 'Creating Account...') : (isLoginView ? 'Login' : 'Sign Up')}
+            {isLoading ? 'Logging in...' : 'Login'}
+        </AuthButton>
+    </form>
+  );
+
+  const SignupForm = () => (
+     <form onSubmit={handleAuthAction} className="space-y-6 animate-fade-in">
+        <div>
+            <label className={commonLabelClasses}>Full Name</label>
+            <input type="text" className={commonInputClasses} required />
+        </div>
+        <div>
+            <label className={commonLabelClasses}>Email Address</label>
+            <input type="email" className={commonInputClasses} required />
+        </div>
+        <div>
+            <label className={commonLabelClasses}>Password</label>
+            <input type="password" className={commonInputClasses} required />
+        </div>
+        <AuthButton>
+            {isLoading ? 'Creating Account...' : 'Sign Up'}
         </AuthButton>
     </form>
   );
@@ -166,17 +115,7 @@ const Login: React.FC<LoginProps> = ({ addAlert }) => {
             </p>
         </div>
         <div className="p-8 border border-light-border dark:border-dark-border rounded-2xl transition-all duration-300 group-hover:shadow-glow-magenta group-hover:bg-light-surface/50 dark:group-hover:bg-black/20 group-hover:backdrop-blur-md">
-            <AuthForm />
-            <OrSeparator />
-             <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={isLoading}
-                className="w-full py-3 bg-white dark:bg-slate-800 text-light-text dark:text-dark-text font-semibold rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-all duration-300 flex items-center justify-center gap-3 border border-light-border dark:border-dark-border"
-            >
-                <Icon type="brands" name="google" />
-                Sign in with Google
-            </button>
+            {isLoginView ? <LoginForm /> : <SignupForm />}
             <p className="text-center text-sm text-light-text-secondary dark:text-gray-400 mt-6">
                 {isLoginView ? "Don't have an account? " : "Already have an account? "}
                 <button 
