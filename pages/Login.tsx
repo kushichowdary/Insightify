@@ -2,129 +2,254 @@
 import React, { useState } from 'react';
 import Icon from '../components/Icon';
 import DotGrid from '../components/DotGrid';
+import { auth } from '../firebase';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from 'firebase/auth';
+import { AlertType } from '../types';
 
 interface LoginProps {
-  onLogin: () => void;
+  addAlert: (message: string, type: AlertType) => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+// Firebase error handler
+const getFirebaseErrorMessage = (errorCode: string): string => {
+  switch (errorCode) {
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return 'Invalid email or password.';
+    case 'auth/email-already-in-use':
+      return 'An account with this email already exists.';
+    case 'auth/weak-password':
+      return 'Password should be at least 6 characters.';
+    case 'auth/invalid-email':
+      return 'Please enter a valid email address.';
+    default:
+      return 'An unexpected error occurred. Please try again.';
+  }
+};
+
+// 🔹 Reusable AuthForm component (moved outside main component to fix typing issue)
+const AuthForm: React.FC<{
+  isLoginView: boolean;
+  isLoading: boolean;
+  email: string;
+  setEmail: (v: string) => void;
+  password: string;
+  setPassword: (v: string) => void;
+  fullName: string;
+  setFullName: (v: string) => void;
+  handleSubmit: (e: React.FormEvent) => void;
+}> = ({
+  isLoginView,
+  isLoading,
+  email,
+  setEmail,
+  password,
+  setPassword,
+  fullName,
+  setFullName,
+  handleSubmit,
+}) => {
+  const commonInputClasses =
+    'mt-1 w-full p-3 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-brand-primary focus:outline-none bg-light-surface/50 dark:bg-black/30 text-light-text dark:text-white placeholder-gray-400 transition-all';
+  const commonLabelClasses =
+    'text-sm font-medium text-light-text-secondary dark:text-gray-300';
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+      {!isLoginView && (
+        <div>
+          <label className={commonLabelClasses}>Full Name</label>
+          <input
+            type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className={commonInputClasses}
+            required
+          />
+        </div>
+      )}
+      <div>
+        <label className={commonLabelClasses}>Email Address</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className={commonInputClasses}
+          required
+        />
+      </div>
+      <div>
+        <label className={commonLabelClasses}>Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className={commonInputClasses}
+          required
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="relative w-full py-3 bg-brand-primary text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 
+        disabled:bg-slate-600 dark:disabled:bg-slate-700 
+        hover:shadow-glow-primary hover:scale-[1.02] active:scale-[0.98] 
+        before:absolute before:inset-0 before:rounded-lg before:blur-xl before:bg-brand-primary before:opacity-30 before:transition-all before:duration-300 hover:before:opacity-50"
+      >
+        {isLoading
+          ? isLoginView
+            ? 'Logging in...'
+            : 'Creating Account...'
+          : isLoginView
+          ? 'Login'
+          : 'Sign Up'}
+      </button>
+    </form>
+  );
+};
+
+const Login: React.FC<LoginProps> = ({ addAlert }) => {
   const [isLoginView, setIsLoginView] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
 
-  const handleAuthAction = (e: React.FormEvent) => {
+  // Handle Email + Password Auth
+  const handleEmailPasswordAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      if (isLoginView) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        if (userCredential.user) {
+          await updateProfile(userCredential.user, { displayName: fullName });
+        }
+      }
+    } catch (error: any) {
+      addAlert(getFirebaseErrorMessage(error.code), 'error');
+    } finally {
       setIsLoading(false);
-      onLogin(); // For both login and signup for this demo
-    }, 1000);
+    }
   };
 
-  const commonInputClasses = "mt-1 w-full p-3 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-brand-primary focus:outline-none bg-light-surface/50 dark:bg-black/20 text-light-text dark:text-white placeholder-gray-400 transition-all";
-  const commonLabelClasses = "text-sm font-medium text-light-text-secondary dark:text-gray-300";
-  
-  const AuthButton: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <button
-      type="submit"
-      disabled={isLoading}
-      className="w-full py-3 bg-brand-primary text-white font-semibold rounded-lg hover:bg-brand-primary-hover disabled:bg-slate-500 dark:disabled:bg-slate-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-magenta-500/30 hover:shadow-glow-magenta"
-    >
-      {children}
-    </button>
-  );
+  // Handle Google Auth
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      addAlert(getFirebaseErrorMessage(error.code), 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const LoginForm = () => (
-     <form onSubmit={handleAuthAction} className="space-y-6 animate-fade-in">
-        <div>
-            <label className={commonLabelClasses}>Email Address</label>
-            <input 
-            type="email" 
-            defaultValue="analyst@company.com"
-            className={commonInputClasses} 
-            required 
-            />
-        </div>
-        <div>
-            <label className={commonLabelClasses}>Password</label>
-            <input 
-            type="password" 
-            defaultValue="password"
-            className={commonInputClasses} 
-            required 
-            />
-        </div>
-        <AuthButton>
-            {isLoading ? 'Logging in...' : 'Login'}
-        </AuthButton>
-    </form>
-  );
-
-  const SignupForm = () => (
-     <form onSubmit={handleAuthAction} className="space-y-6 animate-fade-in">
-        <div>
-            <label className={commonLabelClasses}>Full Name</label>
-            <input type="text" className={commonInputClasses} required />
-        </div>
-        <div>
-            <label className={commonLabelClasses}>Email Address</label>
-            <input type="email" className={commonInputClasses} required />
-        </div>
-        <div>
-            <label className={commonLabelClasses}>Password</label>
-            <input type="password" className={commonInputClasses} required />
-        </div>
-        <AuthButton>
-            {isLoading ? 'Creating Account...' : 'Sign Up'}
-        </AuthButton>
-    </form>
+  // UI Elements
+  const OrSeparator = () => (
+    <div className="flex items-center my-4">
+      <hr className="flex-grow border-light-border dark:border-dark-border" />
+      <span className="mx-4 text-xs text-light-text-secondary dark:text-dark-text-secondary">
+        OR
+      </span>
+      <hr className="flex-grow border-light-border dark:border-dark-border" />
+    </div>
   );
 
   return (
     <div className="min-h-screen bg-light-background dark:bg-black flex items-center justify-center p-4 relative overflow-hidden">
-        <div className="dark:hidden absolute inset-0 w-full h-full z-0">
-             <DotGrid
-                dotSize={3}
-                gap={30}
-                baseColor="#d1d5db" // gray-300
-                activeColor="#c026d3" // fuchsia-600
-                proximity={120}
-                shockStrength={3}
-                className="w-full h-full"
-            />
-        </div>
-         <div className="hidden dark:block absolute inset-0 w-full h-full z-0">
-             <DotGrid
-                dotSize={3}
-                gap={30}
-                baseColor="#392e4e"
-                activeColor="#ff00ff"
-                proximity={120}
-                shockStrength={3}
-                className="w-full h-full"
-            />
-        </div>
+      {/* Background Dot Grid */}
+      <div className="dark:hidden absolute inset-0 w-full h-full z-0">
+        <DotGrid
+          dotSize={3}
+          gap={30}
+          baseColor="#d1d5db"
+          activeColor="#3b82f6"
+          proximity={120}
+          shockStrength={3}
+          className="w-full h-full"
+        />
+      </div>
+      <div className="hidden dark:block absolute inset-0 w-full h-full z-0">
+        <DotGrid
+          dotSize={3}
+          gap={30}
+          baseColor="#392e4e"
+          activeColor="#f038d1"
+          proximity={120}
+          shockStrength={3}
+          className="w-full h-full"
+        />
+      </div>
+
+      {/* Login Card */}
       <div className="w-full max-w-md z-10 group">
         <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-light-text dark:text-white flex items-center justify-center gap-2">
-                <Icon name="chart-line" />
-                Insightify
-            </h1>
-            <p className="text-light-text-secondary dark:text-gray-400 mt-2">
-                {isLoginView ? 'Welcome back! Please login to your account.' : 'Create an account to get started.'}
-            </p>
+          <h1 className="text-4xl font-bold text-light-text dark:text-white flex items-center justify-center gap-2">
+            <Icon name="chart-line" />
+            Insightify
+          </h1>
+          <p className="text-light-text-secondary dark:text-gray-400 mt-2">
+            {isLoginView
+              ? 'Welcome back! Please login to your account.'
+              : 'Create an account to get started.'}
+          </p>
         </div>
-        <div className="p-8 border border-light-border dark:border-dark-border rounded-2xl transition-all duration-300 group-hover:shadow-glow-magenta group-hover:bg-light-surface/50 dark:group-hover:bg-black/20 group-hover:backdrop-blur-md">
-            {isLoginView ? <LoginForm /> : <SignupForm />}
-            <p className="text-center text-sm text-light-text-secondary dark:text-gray-400 mt-6">
-                {isLoginView ? "Don't have an account? " : "Already have an account? "}
-                <button 
-                  onClick={() => setIsLoginView(!isLoginView)} 
-                  className="font-semibold text-brand-primary hover:text-magenta-400 hover:underline transition-colors"
-                >
-                    {isLoginView ? 'Sign Up' : 'Login'}
-                </button>
-            </p>
+
+        <div className="p-8 border border-light-border dark:border-dark-border rounded-2xl 
+          transition-all duration-300 group-hover:shadow-glow-primary
+          group-hover:bg-light-surface/50 dark:group-hover:bg-black/20 
+          group-hover:backdrop-blur-md bg-light-surface/30 dark:bg-black/30 shadow-inner shadow-black/5">
+          
+          {/* Auth Form */}
+          <AuthForm
+            isLoginView={isLoginView}
+            isLoading={isLoading}
+            email={email}
+            setEmail={setEmail}
+            password={password}
+            setPassword={setPassword}
+            fullName={fullName}
+            setFullName={setFullName}
+            handleSubmit={handleEmailPasswordAuth}
+          />
+
+          <OrSeparator />
+
+          {/* Google Button */}
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+            className="w-full py-3 bg-white dark:bg-slate-800 text-light-text dark:text-dark-text font-semibold rounded-lg 
+            hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-all duration-300 
+            flex items-center justify-center gap-3 border border-light-border dark:border-dark-border 
+            hover:shadow-glow-primary"
+          >
+            <Icon type="brands" name="google" />
+            Sign in with Google
+          </button>
+
+          {/* Toggle Text */}
+          <p className="text-center text-sm text-light-text-secondary dark:text-gray-400 mt-6">
+            {isLoginView ? "Don't have an account? " : 'Already have an account? '}
+            <button
+              onClick={() => setIsLoginView(!isLoginView)}
+              className="font-semibold text-brand-primary hover:underline transition-colors"
+            >
+              {isLoginView ? 'Sign Up' : 'Login'}
+            </button>
+          </p>
         </div>
       </div>
     </div>

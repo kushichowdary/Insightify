@@ -54,7 +54,8 @@ const CompetitiveAnalysis: React.FC<{ addAlert: (message: string, type: 'success
             addAlert('Competitive analysis completed successfully!', 'success');
         } catch (error) {
             console.error(error);
-            addAlert('Failed to perform analysis. The model might be busy or one of the URLs is invalid.', 'error');
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during competitive analysis.";
+            addAlert(errorMessage, 'error');
         } finally {
             setIsLoading(false);
         }

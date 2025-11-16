@@ -27,7 +27,7 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
       addAlert('URL analysis completed successfully!', 'success');
     } catch (error) {
       console.error(error);
-      const errorMessage = error instanceof Error ? "Failed to analyze URL. The model may be experiencing high traffic." : "An unknown error occurred.";
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
       addAlert(errorMessage, 'error');
     } finally {
       setIsLoading(false);

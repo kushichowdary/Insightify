@@ -3,38 +3,51 @@ import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import Icon from '../components/Icon';
 import ThemeSwitch from '../components/ThemeSwitch';
-import { Theme } from '../types';
+import { Theme, AccentColor } from '../types';
+
+const accentColors: AccentColor[] = [
+  { name: 'Default Blue', main: '#3b82f6', hover: '#60a5fa', glow: 'rgba(59, 130, 246, 0.4)' },
+  { name: 'Cyber Magenta', main: '#f038d1', hover: '#f76de0', glow: 'rgba(240, 56, 209, 0.4)' },
+  { name: 'Emerald Green', main: '#10b981', hover: '#34d399', glow: 'rgba(16, 185, 129, 0.4)' },
+  { name: 'Amber Orange', main: '#f59e0b', hover: '#fbbf24', glow: 'rgba(245, 158, 11, 0.4)' },
+  { name: 'Violet Purple', main: '#8b5cf6', hover: '#a78bfa', glow: 'rgba(139, 92, 246, 0.4)' },
+];
 
 interface AppSettingsProps {
   addAlert: (message: string, type: 'success' | 'error' | 'info') => void;
   theme: Theme;
   onToggleTheme: () => void;
+  accentColor: AccentColor | null;
+  setAccentColor: (color: AccentColor | null) => void;
 }
 
-const colorOptions = [
-    { name: 'Magenta', main: '#f038d1', hover: '#f76de0' },
-    { name: 'Blue', main: '#3b82f6', hover: '#60a5fa' },
-    { name: 'Green', main: '#22c55e', hover: '#4ade80' },
-    { name: 'Orange', main: '#f97316', hover: '#fb923c' },
-];
-
-const AppSettings: React.FC<AppSettingsProps> = ({ addAlert, theme, onToggleTheme }) => {
+const AppSettings: React.FC<AppSettingsProps> = ({ addAlert, theme, onToggleTheme, accentColor, setAccentColor }) => {
     const commonLabelClasses = "text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary";
     const commonSelectClasses = "mt-1 w-full p-2.5 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:outline-none bg-light-background dark:bg-black/20 text-light-text dark:text-white";
 
     const [models, setModels] = useState({ pro: 'gemini-2.5-pro', flash: 'gemini-2.5-flash' });
-    const [activeColor, setActiveColor] = useState('#f038d1');
     
     useEffect(() => {
         const savedModels = localStorage.getItem('defaultModels');
         if (savedModels) {
-            setModels(JSON.parse(savedModels));
-        }
-        const savedColor = localStorage.getItem('brandColor');
-        if (savedColor) {
-            setActiveColor(savedColor);
+            try {
+                const parsed = JSON.parse(savedModels);
+                if(parsed.pro && parsed.flash) setModels(parsed);
+            } catch(e) { console.error(e); }
         }
     }, []);
+
+    const handleAccentChange = (color: AccentColor) => {
+        setAccentColor(color);
+        localStorage.setItem('accentColor', JSON.stringify(color));
+        addAlert(`Accent color set to ${color.name}!`, 'success');
+    };
+
+    const resetAccentColor = () => {
+        setAccentColor(null);
+        localStorage.removeItem('accentColor');
+        addAlert('Accent color reset to theme default.', 'info');
+    };
 
     const handleModelChange = (type: 'pro' | 'flash', value: string) => {
         const newModels = { ...models, [type]: value };
@@ -42,24 +55,12 @@ const AppSettings: React.FC<AppSettingsProps> = ({ addAlert, theme, onToggleThem
         localStorage.setItem('defaultModels', JSON.stringify(newModels));
         addAlert('Default model settings updated!', 'success');
     };
-    
-    const handleColorChange = (color: { main: string, hover: string }) => {
-        document.documentElement.style.setProperty('--color-brand-primary', color.main);
-        document.documentElement.style.setProperty('--color-brand-primary-hover', color.hover);
-        localStorage.setItem('brandColor', color.main);
-        localStorage.setItem('brandColorHover', color.hover);
-        setActiveColor(color.main);
-        addAlert('Accent color updated!', 'success');
-    };
 
     const handleClearCache = () => {
-        // A more robust implementation would selectively clear app-specific keys
         localStorage.removeItem('defaultModels');
-        localStorage.removeItem('brandColor');
-        localStorage.removeItem('brandColorHover');
-        // We keep theme as it's a very common preference
+        localStorage.removeItem('accentColor');
         addAlert('Local application cache cleared!', 'info');
-        window.location.reload(); // Reload to apply default settings
+        window.location.reload(); 
     };
 
     return (
@@ -75,18 +76,26 @@ const AppSettings: React.FC<AppSettingsProps> = ({ addAlert, theme, onToggleThem
                              <ThemeSwitch theme={theme} onToggle={onToggleTheme} />
                         </div>
                     </div>
-                    <div>
+                     <div>
                         <label className={commonLabelClasses}>Accent Color</label>
-                        <div className="flex items-center gap-3 mt-2">
-                            {colorOptions.map(color => (
+                        <div className="mt-2 flex flex-wrap items-center gap-3">
+                            {accentColors.map(color => (
                                 <button
                                     key={color.name}
-                                    onClick={() => handleColorChange(color)}
-                                    className={`w-8 h-8 rounded-full transition-all ring-2 ${activeColor === color.main ? 'ring-offset-2 dark:ring-offset-dark-background ring-brand-primary scale-110' : 'ring-transparent hover:scale-110'}`}
+                                    title={color.name}
+                                    onClick={() => handleAccentChange(color)}
+                                    className={`w-8 h-8 rounded-full transition-all duration-200 ring-offset-2 dark:ring-offset-slate-800 ring-2 ${accentColor?.main === color.main ? 'ring-slate-900 dark:ring-white scale-110' : 'ring-transparent hover:scale-110'}`}
                                     style={{ backgroundColor: color.main }}
-                                    aria-label={`Set accent color to ${color.name}`}
-                                />
+                                >
+                                    {accentColor?.main === color.main && <Icon name="check" className="text-white text-sm" />}
+                                </button>
                             ))}
+                            <button
+                                onClick={resetAccentColor}
+                                className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-primary underline transition-colors ml-2"
+                            >
+                                Reset to Default
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -128,7 +137,7 @@ const AppSettings: React.FC<AppSettingsProps> = ({ addAlert, theme, onToggleThem
                 <div className="space-y-4">
                     <div>
                         <label className={commonLabelClasses}>Clear Local Settings</label>
-                        <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mb-2">This will reset accent color and model preferences to their defaults. Your theme preference will be kept.</p>
+                        <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mb-2">This will reset your model and appearance preferences to their defaults. Your theme preference will be kept.</p>
                         <button 
                             onClick={handleClearCache}
                             className="px-4 py-2 bg-brand-error/20 text-brand-error font-semibold rounded-lg hover:bg-brand-error/30 transition-colors flex items-center gap-2"

@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { User as FirebaseUser } from 'firebase/auth';
 import Icon from './Icon';
 import ThemeSwitch from './ThemeSwitch';
 import { Theme } from '../types';
 
 interface HeaderProps {
   title: string;
+  user: FirebaseUser;
   onLogout: () => void;
   onSettingsClick: () => void;
   onAppSettingsClick: () => void;
@@ -13,7 +15,7 @@ interface HeaderProps {
   onToggleTheme: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, onLogout, onSettingsClick, onAppSettingsClick, theme, onToggleTheme }) => {
+const Header: React.FC<HeaderProps> = ({ title, user, onLogout, onSettingsClick, onAppSettingsClick, theme, onToggleTheme }) => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -39,6 +41,8 @@ const Header: React.FC<HeaderProps> = ({ title, onLogout, onSettingsClick, onApp
     { id: 2, text: "Model retraining completed successfully.", time: "2h ago", icon: "cogs" },
     { id: 3, text: "Server maintenance scheduled for tonight.", time: "1d ago", icon: "server" }
   ];
+
+  const userInitial = user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'A';
 
   return (
     <header className="relative z-20 bg-light-surface/80 dark:bg-dark-surface backdrop-blur-lg border-b border-light-border dark:border-dark-border p-5 flex justify-between items-center flex-shrink-0">
@@ -75,13 +79,13 @@ const Header: React.FC<HeaderProps> = ({ title, onLogout, onSettingsClick, onApp
         </div>
         <div className="relative" ref={profileRef}>
           <button onClick={() => setProfileOpen(!profileOpen)} className="w-9 h-9 bg-brand-primary rounded-full flex items-center justify-center text-white font-bold text-sm ring-2 ring-transparent hover:ring-brand-primary-hover transition-all">
-            A
+            {userInitial}
           </button>
           {profileOpen && (
              <div className="absolute right-0 mt-3 w-56 bg-light-surface/80 dark:bg-slate-900/80 backdrop-blur-xl border border-light-border dark:border-white/10 rounded-lg shadow-2xl z-30 animate-fade-in-down">
                 <div className="p-2 border-b border-light-border dark:border-white/10">
-                    <p className="text-sm font-semibold text-light-text dark:text-dark-text">Analyst</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">analyst@company.com</p>
+                    <p className="text-sm font-semibold text-light-text dark:text-dark-text truncate">{user.displayName || 'Analyst'}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                 </div>
                 <div className="py-1">
                     <a href="#" onClick={(e) => { e.preventDefault(); onSettingsClick(); setProfileOpen(false); }} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"><Icon name="user-circle" /> Profile & Settings</a>

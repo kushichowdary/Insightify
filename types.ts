@@ -4,6 +4,13 @@ export type Sentiment = 'Positive' | 'Negative' | 'Neutral';
 // FIX: Add and export the 'Theme' type.
 export type Theme = 'light' | 'dark';
 
+export type AccentColor = {
+  name: string;
+  main: string;
+  hover: string;
+  glow: string;
+};
+
 export interface ProductAnalysisResult {
   productName: string;
   overallRating: number;

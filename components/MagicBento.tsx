@@ -28,7 +28,7 @@ export interface BentoProps {
 
 const DEFAULT_PARTICLE_COUNT = 12;
 const DEFAULT_SPOTLIGHT_RADIUS = 300;
-const DEFAULT_GLOW_COLOR = '240, 56, 209'; // Magenta 500
+const DEFAULT_GLOW_COLOR = 'var(--color-primary)';
 const MOBILE_BREAKPOINT = 768;
 
 const cardData: BentoCardProps[] = [
@@ -40,7 +40,7 @@ const cardData: BentoCardProps[] = [
     { tabId: 'reporting', title: 'Reporting', description: 'Generate and view reports', label: 'Reports' }
 ];
 
-const createParticleElement = (x: number, y: number, color: string = DEFAULT_GLOW_COLOR): HTMLDivElement => {
+const createParticleElement = (x: number, y: number): HTMLDivElement => {
   const el = document.createElement('div');
   el.className = 'particle';
   el.style.cssText = `
@@ -48,8 +48,8 @@ const createParticleElement = (x: number, y: number, color: string = DEFAULT_GLO
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: rgba(${color}, 1);
-    box-shadow: 0 0 6px rgba(${color}, 0.6);
+    background: ${DEFAULT_GLOW_COLOR};
+    box-shadow: 0 0 6px ${DEFAULT_GLOW_COLOR};
     pointer-events: none;
     z-index: 100;
     left: ${x}px;
@@ -80,7 +80,6 @@ const ParticleCard: React.FC<{
   disableAnimations?: boolean;
   style?: React.CSSProperties;
   particleCount?: number;
-  glowColor?: string;
   enableTilt?: boolean;
   clickEffect?: boolean;
   enableMagnetism?: boolean;
@@ -91,7 +90,6 @@ const ParticleCard: React.FC<{
   disableAnimations = false,
   style,
   particleCount = DEFAULT_PARTICLE_COUNT,
-  glowColor = DEFAULT_GLOW_COLOR,
   enableTilt = true,
   clickEffect = false,
   enableMagnetism = false,
@@ -110,10 +108,10 @@ const ParticleCard: React.FC<{
 
     const { width, height } = cardRef.current.getBoundingClientRect();
     memoizedParticles.current = Array.from({ length: particleCount }, () =>
-      createParticleElement(Math.random() * width, Math.random() * height, glowColor)
+      createParticleElement(Math.random() * width, Math.random() * height)
     );
     particlesInitialized.current = true;
-  }, [particleCount, glowColor]);
+  }, [particleCount]);
 
   const clearAllParticles = useCallback(() => {
     timeoutsRef.current.forEach(clearTimeout);
@@ -274,7 +272,7 @@ const ParticleCard: React.FC<{
         width: ${maxDistance * 2}px;
         height: ${maxDistance * 2}px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(${glowColor}, 0.4) 0%, rgba(${glowColor}, 0.2) 30%, transparent 70%);
+        background: radial-gradient(circle, var(--color-primary-glow) 0%, transparent 70%);
         left: ${x - maxDistance}px;
         top: ${y - maxDistance}px;
         pointer-events: none;
@@ -312,7 +310,7 @@ const ParticleCard: React.FC<{
       element.removeEventListener('click', handleClick);
       clearAllParticles();
     };
-  }, [animateParticles, clearAllParticles, disableAnimations, enableTilt, enableMagnetism, clickEffect, glowColor, onClick]);
+  }, [animateParticles, clearAllParticles, disableAnimations, enableTilt, enableMagnetism, clickEffect, onClick]);
 
   return (
     <div
@@ -330,13 +328,11 @@ const GlobalSpotlight: React.FC<{
   disableAnimations?: boolean;
   enabled?: boolean;
   spotlightRadius?: number;
-  glowColor?: string;
 }> = ({
   gridRef,
   disableAnimations = false,
   enabled = true,
-  spotlightRadius = DEFAULT_SPOTLIGHT_RADIUS,
-  glowColor = DEFAULT_GLOW_COLOR
+  spotlightRadius = DEFAULT_SPOTLIGHT_RADIUS
 }) => {
   const spotlightRef = useRef<HTMLDivElement | null>(null);
   const isInsideSection = useRef(false);
@@ -353,11 +349,7 @@ const GlobalSpotlight: React.FC<{
       border-radius: 50%;
       pointer-events: none;
       background: radial-gradient(circle,
-        rgba(${glowColor}, 0.15) 0%,
-        rgba(${glowColor}, 0.08) 15%,
-        rgba(${glowColor}, 0.04) 25%,
-        rgba(${glowColor}, 0.02) 40%,
-        rgba(${glowColor}, 0.01) 65%,
+        var(--color-primary-glow) 0%,
         transparent 70%
       );
       z-index: 200;
@@ -458,7 +450,7 @@ const GlobalSpotlight: React.FC<{
       document.removeEventListener('mouseleave', handleMouseLeave);
       spotlightRef.current?.parentNode?.removeChild(spotlightRef.current);
     };
-  }, [gridRef, disableAnimations, enabled, spotlightRadius, glowColor]);
+  }, [gridRef, disableAnimations, enabled, spotlightRadius]);
 
   return null;
 };
@@ -500,7 +492,6 @@ const MagicBento: React.FC<BentoProps> = ({
   spotlightRadius = DEFAULT_SPOTLIGHT_RADIUS,
   particleCount = DEFAULT_PARTICLE_COUNT,
   enableTilt = false,
-  glowColor = DEFAULT_GLOW_COLOR,
   clickEffect = true,
   enableMagnetism = true,
   onTabChange,
@@ -518,16 +509,9 @@ const MagicBento: React.FC<BentoProps> = ({
             --glow-y: 50%;
             --glow-intensity: 0;
             --glow-radius: 200px;
-            --glow-color: ${glowColor};
-            --border-color: var(--light-border);
-            --text-color-primary: var(--light-text);
-            --text-color-secondary: var(--light-text-secondary);
-          }
-          
-          .dark .bento-section {
-            --border-color: #392e4e;
-            --text-color-primary: #ffffff;
-            --text-color-secondary: rgba(255,255,255,0.7);
+            --border-color: var(--color-border);
+            --text-color-primary: var(--color-text-primary);
+            --text-color-secondary: var(--color-text-secondary);
           }
 
           .card-responsive {
@@ -570,8 +554,7 @@ const MagicBento: React.FC<BentoProps> = ({
             inset: 0;
             padding: 2px;
             background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
-                rgba(${glowColor}, calc(var(--glow-intensity) * 0.8)) 0%,
-                rgba(${glowColor}, calc(var(--glow-intensity) * 0.4)) 30%,
+                var(--color-primary-glow) 0%,
                 transparent 60%);
             border-radius: inherit;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -588,23 +571,11 @@ const MagicBento: React.FC<BentoProps> = ({
           }
           
           .dark .card--border-glow:hover {
-            box-shadow: 0 4px 20px rgba(46, 24, 78, 0.4), 0 0 30px rgba(${glowColor}, 0.2);
-          }
-          
-          .particle::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: rgba(${glowColor}, 0.2);
-            border-radius: 50%;
-            z-index: -1;
+            box-shadow: 0 4px 20px rgba(46, 24, 78, 0.4), 0 0 30px var(--color-primary-glow);
           }
           
           .particle-container:hover {
-            box-shadow: 0 4px 20px rgba(46, 24, 78, 0.2), 0 0 30px rgba(${glowColor}, 0.2);
+            box-shadow: 0 4px 20px rgba(46, 24, 78, 0.2), 0 0 30px var(--color-primary-glow);
           }
           
           @media (max-width: 599px) {
@@ -629,7 +600,6 @@ const MagicBento: React.FC<BentoProps> = ({
           disableAnimations={shouldDisableAnimations}
           enabled={enableSpotlight}
           spotlightRadius={spotlightRadius}
-          glowColor={glowColor}
         />
       )}
 
@@ -656,7 +626,6 @@ const MagicBento: React.FC<BentoProps> = ({
                   style={cardStyle}
                   disableAnimations={shouldDisableAnimations}
                   particleCount={particleCount}
-                  glowColor={glowColor}
                   enableTilt={enableTilt}
                   clickEffect={clickEffect}
                   enableMagnetism={enableMagnetism}

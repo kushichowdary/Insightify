@@ -30,43 +30,22 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout, isE
           e.preventDefault();
           onTabChange(item.id);
         }}
-        className={`flex items-center relative overflow-hidden transition-all duration-500 rounded-xl py-3 ${
+        className={`flex items-center relative overflow-hidden transition-all duration-500 rounded-xl py-3 border ${
           isExpanded ? 'px-5' : 'justify-center'
         } ${
           activeTab === item.id
-            ? 'text-magenta-400 font-semibold'
-            : 'text-white/70 hover:text-white'
+            ? 'text-brand-primary font-semibold bg-brand-primary/10 shadow-glow-primary border-brand-primary/30'
+            : 'text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text dark:hover:text-dark-text bg-black/5 dark:bg-white/5 border-transparent hover:border-brand-primary/20 hover:shadow-glow-primary'
         }`}
-        style={{
-          background:
-            activeTab === item.id
-              ? 'rgba(255, 0, 180, 0.1)'
-              : 'rgba(255, 255, 255, 0.02)',
-          boxShadow:
-            activeTab === item.id
-              ? '0 0 25px rgba(255, 0, 180, 0.5), inset 0 0 10px rgba(255, 0, 180, 0.3)'
-              : '0 0 8px rgba(255, 0, 255, 0.06)',
-          border: '1px solid rgba(255, 0, 200, 0.15)',
-        }}
       >
-        {/* Glow Border on Hover */}
-        <span
-          className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-700"
-          style={{
-            boxShadow:
-              '0 0 25px 4px rgba(255, 0, 200, 0.45), inset 0 0 15px rgba(255, 0, 200, 0.3)',
-            filter: 'drop-shadow(0 0 8px rgba(255, 0, 200, 0.4))',
-          }}
-        ></span>
-
         <Icon
           name={item.icon}
           className={`w-5 relative z-10 text-center transition-all duration-500 ${
             isExpanded ? 'mr-3' : ''
-          } group-hover:scale-125 group-hover:text-magenta-300`}
+          } group-hover:scale-110 group-hover:text-brand-primary`}
         />
         {isExpanded && (
-          <span className="relative z-10 whitespace-nowrap group-hover:text-magenta-200 transition-all duration-300">
+          <span className="relative z-10 whitespace-nowrap transition-all duration-300">
             {item.label}
           </span>
         )}
@@ -78,28 +57,21 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout, isE
     <div
       onMouseEnter={() => onHoverChange(true)}
       onMouseLeave={() => onHoverChange(false)}
-      className={`fixed top-0 left-0 h-full flex flex-col justify-between z-50 transition-all duration-700 ease-in-out overflow-hidden ${
-        isExpanded ? 'w-64' : 'w-20'
+      className={`fixed top-0 left-0 h-full flex flex-col justify-between z-50 transition-all duration-700 ease-in-out overflow-hidden bg-light-surface dark:bg-black border-r border-light-border dark:border-dark-border ${
+        isExpanded ? 'w-64 shadow-2xl' : 'w-20 shadow-lg'
       }`}
-      style={{
-        background: '#000000', // 🔥 Pure Black Background
-        borderRight: '1px solid rgba(255, 0, 200, 0.1)',
-        boxShadow: isExpanded
-          ? '0 0 30px rgba(255, 0, 200, 0.2)'
-          : '0 0 15px rgba(255, 0, 200, 0.05)',
-      }}
     >
       {/* Header */}
       <div
-        className={`py-5 border-b border-white/10 transition-all duration-500 ${
+        className={`py-5 border-b border-light-border dark:border-dark-border transition-all duration-500 ${
           isExpanded ? 'px-6' : 'px-0'
         }`}
       >
         <h2
-          className={`text-xl font-bold text-magenta-300 flex items-center gap-2 ${
+          className={`text-xl font-bold text-brand-primary flex items-center gap-2 ${
             isExpanded ? '' : 'justify-center'
           }`}
-          style={{ textShadow: '0 0 15px rgba(255, 0, 200, 0.7)' }}
+          style={{ textShadow: '0 0 15px var(--color-primary-glow)' }}
         >
           <Icon name="chart-line" />
           {isExpanded && <span>Insightify</span>}
@@ -107,27 +79,27 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout, isE
       </div>
 
       {/* Navigation */}
-      <ul className="flex-grow pt-4 px-2 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-magenta-500/30 scrollbar-track-transparent">
+      <ul className="flex-grow pt-4 px-2 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-brand-primary/30 scrollbar-track-transparent">
         {navItems.map((item) => (
           <NavLink key={item.id} item={item} />
         ))}
       </ul>
 
       {/* Footer */}
-      <div className="border-t border-white/10 p-4 flex flex-col items-center space-y-5">
+      <div className={`border-t border-light-border dark:border-dark-border p-4 flex flex-col items-center space-y-4`}>
         {isExpanded && (
-          <div className="text-center text-xs text-white/70 font-light tracking-wide animate-fade-in">
-            Built by <span className="text-magenta-300 font-medium">Kushwanth</span>
+          <div className="text-center text-xs text-light-text-secondary dark:text-dark-text-secondary font-light tracking-wide animate-fade-in">
+            Built by <span className="text-brand-primary font-medium">Kushwanth</span>
           </div>
         )}
 
         {/* Social Icons */}
-        <div className="flex justify-center gap-6 mt-2">
+        <div className="flex justify-center gap-6">
           <a
             href="https://www.linkedin.com/in/kushichowdary/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-white/60 hover:text-magenta-300 transform hover:scale-110 transition-all duration-500"
+            className="text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-primary transform hover:scale-110 transition-all duration-500"
           >
             <Icon type="brands" name="linkedin" className="text-lg" />
           </a>
@@ -135,7 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout, isE
             href="https://github.com/kushichowdary"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-white/60 hover:text-magenta-300 transform hover:scale-110 transition-all duration-500"
+            className="text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-primary transform hover:scale-110 transition-all duration-500"
           >
             <Icon type="brands" name="github" className="text-lg" />
           </a>
@@ -144,12 +116,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout, isE
         {/* Logout */}
         <button
           onClick={onLogout}
-          className={`w-full flex items-center justify-center text-white/70 hover:text-magenta-300 transition-all duration-500 hover:shadow-[0_0_15px_rgba(255,0,200,0.4)] px-4 py-2.5 rounded-lg ${
+          className={`w-full flex items-center justify-center text-light-text-secondary dark:text-dark-text-secondary hover:text-brand-primary transition-all duration-500 hover:shadow-glow-primary bg-black/5 dark:bg-white/5 px-4 py-2.5 rounded-lg ${
             isExpanded ? 'justify-start' : ''
           }`}
-          style={{
-            background: 'rgba(255,255,255,0.03)',
-          }}
         >
           <Icon
             name="sign-out-alt"

@@ -1,5 +1,5 @@
 {
-  "name": "insightify---e-commerce-sentiment-analyzer",
+  "name": "insightify",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,7 +14,8 @@
     "@google/genai": "^1.26.0",
     "recharts": "^3.3.0",
     "gsap": "^3.13.0",
-    "styled-components": "^6.1.12"
+    "styled-components": "^6.1.12",
+    "firebase": "^12.6.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

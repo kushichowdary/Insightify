@@ -1,5 +1,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { User as FirebaseUser, onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from './firebase';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
@@ -14,14 +16,25 @@ import AppSettings from './pages/AppSettings';
 import CompetitiveAnalysis from './pages/CompetitiveAnalysis';
 import Reporting from './pages/Reporting';
 import { AlertContainer } from './components/Alert';
-import { AlertMessage, Theme } from './types';
+import { AlertMessage, Theme, AccentColor } from './types';
+import Loader from './components/Loader';
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [alerts, setAlerts] = useState<AlertMessage[]>([]);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [theme, setTheme] = useState<Theme>('dark');
+  const [accentColor, setAccentColor] = useState<AccentColor | null>(null);
+  
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     // Apply theme from localStorage on initial load
@@ -33,15 +46,18 @@ const App: React.FC = () => {
       const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
       setTheme(prefersDark ? 'dark' : 'light');
     }
-
-    // Apply saved accent color
-    const savedColor = localStorage.getItem('brandColor');
-    const savedColorHover = localStorage.getItem('brandColorHover');
-    if (savedColor && savedColorHover) {
-      document.documentElement.style.setProperty('--color-brand-primary', savedColor);
-      document.documentElement.style.setProperty('--color-brand-primary-hover', savedColorHover);
+    
+    // Apply accent color from localStorage on initial load
+    const savedAccent = localStorage.getItem('accentColor');
+    if (savedAccent) {
+      try {
+        const parsedAccent: AccentColor = JSON.parse(savedAccent);
+        setAccentColor(parsedAccent);
+      } catch (e) {
+        console.error("Failed to parse accent color from localStorage", e);
+        localStorage.removeItem('accentColor');
+      }
     }
-
   }, []);
 
   useEffect(() => {
@@ -52,6 +68,22 @@ const App: React.FC = () => {
     }
     localStorage.setItem('theme', theme);
   }, [theme]);
+  
+  useEffect(() => {
+    // Apply custom accent color or clear it to use theme default
+    const root = document.documentElement;
+    if (accentColor) {
+      root.style.setProperty('--color-primary', accentColor.main);
+      root.style.setProperty('--color-primary-hover', accentColor.hover);
+      root.style.setProperty('--color-primary-glow', accentColor.glow);
+    } else {
+      // Clear inline styles to revert to CSS-defined theme defaults
+      root.style.removeProperty('--color-primary');
+      root.style.removeProperty('--color-primary-hover');
+      root.style.removeProperty('--color-primary-glow');
+    }
+  }, [accentColor, theme]); // Rerun when theme changes to ensure override is re-applied if needed
+
 
   const toggleTheme = () => {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
@@ -90,27 +122,34 @@ const App: React.FC = () => {
       case 'reporting': return <Reporting addAlert={addAlert} />;
       case 'admin': return <Admin addAlert={addAlert} />;
       case 'settings': return <Settings addAlert={addAlert} />;
-      case 'app-settings': return <AppSettings addAlert={addAlert} theme={theme} onToggleTheme={toggleTheme} />;
+      case 'app-settings': return <AppSettings addAlert={addAlert} theme={theme} onToggleTheme={toggleTheme} accentColor={accentColor} setAccentColor={setAccentColor} />;
       default: return <Dashboard onTabChange={setActiveTab} />;
     }
   };
-
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-    addAlert('Login successful! Welcome back.', 'success');
-  }
-
+  
   const handleLogout = () => {
-    setIsAuthenticated(false);
-    setActiveTab('dashboard');
-    addAlert('You have been logged out.', 'info');
+    signOut(auth).then(() => {
+        setActiveTab('dashboard');
+        addAlert('You have been logged out.', 'info');
+    }).catch((error) => {
+        addAlert(`Logout failed: ${error.message}`, 'error');
+    });
   }
 
-  if (!isAuthenticated) {
+  if (authLoading) {
     return (
         <>
             <AlertContainer alerts={alerts} onDismiss={dismissAlert} />
-            <Login onLogin={handleLogin} />
+            <Loader message="Authenticating..." />
+        </>
+    );
+  }
+
+  if (!user) {
+    return (
+        <>
+            <AlertContainer alerts={alerts} onDismiss={dismissAlert} />
+            <Login addAlert={addAlert} />
         </>
     );
   }
@@ -131,6 +170,7 @@ const App: React.FC = () => {
        )}
       <main className={`flex-1 flex flex-col transition-all duration-700 ease-in-out ${!isDashboard ? (isSidebarExpanded ? 'ml-64' : 'ml-20') : ''}`}>
         {!isDashboard && <Header 
+            user={user}
             title={pageTitles[activeTab] || 'Dashboard'} 
             onLogout={handleLogout} 
             onSettingsClick={() => setActiveTab('settings')}

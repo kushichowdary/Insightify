@@ -24,7 +24,7 @@ const SingleReview: React.FC<{ addAlert: (message: string, type: 'success' | 'er
       addAlert('Review analysis completed!', 'success');
     } catch (error) {
       console.error(error);
-      const errorMessage = error instanceof Error ? "Failed to analyze review." : "An unknown error occurred.";
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
       addAlert(errorMessage, 'error');
     } finally {
       setIsLoading(false);
