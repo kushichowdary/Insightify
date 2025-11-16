@@ -18,7 +18,6 @@ const navItems = [
   { id: 'competitive-analysis', label: 'Competitor Analysis', icon: 'balance-scale' },
   { id: 'analytics', label: 'Analytics', icon: 'chart-bar' },
   { id: 'reporting', label: 'Reporting', icon: 'file-invoice' },
-  { id: 'admin', label: 'Admin Panel', icon: 'cogs' },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout, isExpanded, onHoverChange }) => {
@@ -74,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout, isE
           style={{ textShadow: '0 0 15px var(--color-primary-glow)' }}
         >
           <Icon name="chart-line" />
-          {isExpanded && <span>Insightify</span>}
+          {isExpanded && <span>Sentilytics</span>}
         </h2>
       </div>
 

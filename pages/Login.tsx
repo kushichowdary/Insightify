@@ -11,6 +11,7 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import { AlertType } from '../types';
+import ScrambledText from '../components/ScrambledText';
 
 interface LoginProps {
   addAlert: (message: string, type: AlertType) => void;
@@ -195,14 +196,14 @@ const Login: React.FC<LoginProps> = ({ addAlert }) => {
       {/* Login Card */}
       <div className="w-full max-w-md z-10 group">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-light-text dark:text-white flex items-center justify-center gap-2">
-            <Icon name="chart-line" />
-            Insightify
-          </h1>
+          <ScrambledText 
+            className="!m-0 !max-w-full !font-sans !text-4xl !font-bold text-center justify-center"
+            radius={150}
+          >
+            Sentilytics
+          </ScrambledText>
           <p className="text-light-text-secondary dark:text-gray-400 mt-2">
-            {isLoginView
-              ? 'Welcome back! Please login to your account.'
-              : 'Create an account to get started.'}
+            Welcome back
           </p>
         </div>
 

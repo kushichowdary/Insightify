@@ -9,7 +9,6 @@ import UrlAnalysis from './pages/UrlAnalysis';
 import FileUpload from './pages/FileUpload';
 import SingleReview from './pages/SingleReview';
 import Analytics from './pages/Analytics';
-import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
 import AppSettings from './pages/AppSettings';
@@ -106,7 +105,6 @@ const App: React.FC = () => {
     'competitive-analysis': 'Competitive Analysis',
     analytics: 'Analytics Dashboard',
     reporting: 'Reporting',
-    admin: 'Admin Panel',
     settings: 'Profile & Settings',
     'app-settings': 'Application Settings',
   };
@@ -120,7 +118,6 @@ const App: React.FC = () => {
       case 'competitive-analysis': return <CompetitiveAnalysis addAlert={addAlert} />;
       case 'analytics': return <Analytics addAlert={addAlert} />;
       case 'reporting': return <Reporting addAlert={addAlert} />;
-      case 'admin': return <Admin addAlert={addAlert} />;
       case 'settings': return <Settings addAlert={addAlert} />;
       case 'app-settings': return <AppSettings addAlert={addAlert} theme={theme} onToggleTheme={toggleTheme} accentColor={accentColor} setAccentColor={setAccentColor} />;
       default: return <Dashboard onTabChange={setActiveTab} />;

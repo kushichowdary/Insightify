@@ -3,6 +3,7 @@ export type Sentiment = 'Positive' | 'Negative' | 'Neutral';
 
 // FIX: Add and export the 'Theme' type.
 export type Theme = 'light' | 'dark';
+export type Verdict = 'Recommended' | 'Consider' | 'Not Recommended';
 
 export type AccentColor = {
   name: string;
@@ -15,6 +16,8 @@ export interface ProductAnalysisResult {
   productName: string;
   overallRating: number;
   reviewCount: number;
+  summary: string;
+  verdict: Verdict;
   sentiment: {
     positive: number;
     negative: number;

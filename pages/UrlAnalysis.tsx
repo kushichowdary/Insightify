@@ -5,7 +5,7 @@ import Card from '../components/Card';
 import Icon from '../components/Icon';
 import Loader from '../components/Loader';
 import { analyzeProductUrl } from '../services/geminiService';
-import { ProductAnalysisResult, Sentiment } from '../types';
+import { ProductAnalysisResult, Sentiment, Verdict } from '../types';
 
 const COLORS = { Positive: '#10B981', Negative: '#EF4444', Neutral: '#F59E0B' };
 
@@ -41,7 +41,9 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
     csvContent += "Category,Value\r\n";
     csvContent += `Product Name,"${results.productName.replace(/"/g, '""')}"\r\n`;
     csvContent += `Overall Rating,${results.overallRating}/5\r\n`;
-    csvContent += `Review Count,${results.reviewCount}\r\n\r\n`;
+    csvContent += `Review Count,${results.reviewCount}\r\n`;
+    csvContent += `Verdict,${results.verdict}\r\n\r\n`;
+    csvContent += `Summary,"${results.summary.replace(/"/g, '""')}"\r\n\r\n`;
     
     csvContent += "Sentiment Analysis (%)\r\n";
     csvContent += `Positive,${results.sentiment.positive}\r\n`;
@@ -62,7 +64,7 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `insightify_${results.productName.replace(/\s+/g, '_')}_analysis.csv`);
+    link.setAttribute("download", `sentilytics_${results.productName.replace(/\s+/g, '_')}_analysis.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -80,6 +82,13 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
     Negative: { glow: 'shadow-glow-red', icon: 'frown', text: 'text-red-400' },
     Neutral: { glow: 'shadow-glow-yellow', icon: 'meh', text: 'text-yellow-400' },
   }
+  
+  const verdictStyles: Record<Verdict, { glow: string; icon: string; text: string; bg: string; border: string }> = {
+    Recommended: { glow: 'shadow-glow-green', icon: 'thumbs-up', text: 'text-green-600 dark:text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/30' },
+    Consider: { glow: 'shadow-glow-yellow', icon: 'search', text: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
+    'Not Recommended': { glow: 'shadow-glow-red', icon: 'thumbs-down', text: 'text-red-600 dark:text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' },
+  }
+  const currentVerdictStyle = results ? verdictStyles[results.verdict] : null;
 
   return (
     <div className="space-y-8 animate-fade-in-up">
@@ -129,6 +138,7 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
                           <span>{results.reviewCount.toLocaleString()} reviews</span>
                       </div>
                   </div>
+                  <p className="text-sm mt-4 text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">{results.summary}</p>
               </div>
               <button onClick={exportToCsv} className="px-4 py-2 bg-brand-primary text-white font-semibold rounded-lg hover:bg-brand-primary-hover transition-colors flex items-center gap-2 self-start sm:self-center shadow-lg hover:shadow-glow-magenta">
                 <Icon name="download"/> Export CSV
@@ -151,6 +161,14 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
                         </ResponsiveContainer>
                     </div>
                 </Card>
+                
+                {currentVerdictStyle && (
+                    <Card className={`flex flex-col items-center justify-center text-center ${currentVerdictStyle.bg} border ${currentVerdictStyle.border} ${currentVerdictStyle.glow}`}>
+                        <h3 className="text-lg font-semibold mb-2 text-light-text dark:text-dark-text">Our Verdict</h3>
+                        <Icon name={currentVerdictStyle.icon} className={`text-5xl mb-3 ${currentVerdictStyle.text}`} />
+                        <p className={`text-xl font-bold ${currentVerdictStyle.text}`}>{results.verdict}</p>
+                    </Card>
+                )}
 
                 <Card>
                     <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Top Keywords</h3>
@@ -174,7 +192,7 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
             <div className="lg:col-span-3">
                 <Card>
                     <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Sample Reviews</h3>
-                    <div className="space-y-4 max-h-[34rem] overflow-y-auto pr-2">
+                    <div className="space-y-4 max-h-[48rem] overflow-y-auto pr-2">
                     {results.sampleReviews.map((review, index) => (
                         <div key={index} className={`p-4 rounded-lg border border-light-border dark:border-dark-border bg-light-background dark:bg-black/30 relative overflow-hidden ${sentimentStyles[review.sentiment].glow}`}>
                             <Icon name={sentimentStyles[review.sentiment].icon} className={`absolute top-4 right-4 text-2xl opacity-10 ${sentimentStyles[review.sentiment].text}`} />

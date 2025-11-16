@@ -31,23 +31,23 @@ const SingleReview: React.FC<{ addAlert: (message: string, type: 'success' | 'er
     }
   };
 
-  const sentimentStyles: Record<Sentiment, { glow: string; iconBg: string; emoji: string; text: string; }> = {
+  const sentimentStyles: Record<Sentiment, { glow: string; iconBg: string; icon: string; text: string; }> = {
     Positive: {
       glow: 'shadow-glow-green',
       iconBg: 'bg-green-500',
-      emoji: '😊',
+      icon: 'check-circle',
       text: 'text-green-600 dark:text-green-400'
     },
     Negative: {
       glow: 'shadow-glow-red',
       iconBg: 'bg-red-500',
-      emoji: '😞',
+      icon: 'times-circle',
       text: 'text-red-600 dark:text-red-400'
     },
     Neutral: {
       glow: 'shadow-glow-yellow',
       iconBg: 'bg-yellow-500',
-      emoji: '😐',
+      icon: 'minus-circle',
       text: 'text-yellow-600 dark:text-yellow-400'
     }
   };
@@ -81,7 +81,7 @@ const SingleReview: React.FC<{ addAlert: (message: string, type: 'success' | 'er
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="p-6 rounded-lg text-center">
                   <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${currentStyle.iconBg}`}>
-                      <span className="text-4xl">{currentStyle.emoji}</span>
+                      <Icon name={currentStyle.icon} className="text-4xl text-white"/>
                   </div>
                   <h4 className={`text-xl font-bold ${currentStyle.text}`}>{results.sentiment}</h4>
                   <p className="font-semibold text-light-text-secondary dark:text-dark-text-secondary">Confidence: {Math.round(results.confidence * 100)}%</p>

@@ -12,6 +12,8 @@ const productAnalysisSchema = {
       productName: { type: Type.STRING },
       overallRating: { type: Type.NUMBER },
       reviewCount: { type: Type.INTEGER },
+      summary: { type: Type.STRING, description: "A concise one-paragraph summary of the product's reception based on reviews." },
+      verdict: { type: Type.STRING, enum: ['Recommended', 'Consider', 'Not Recommended'] },
       sentiment: {
         type: Type.OBJECT,
         properties: {
@@ -35,7 +37,7 @@ const productAnalysisSchema = {
         },
       },
     },
-    required: ['productName', 'overallRating', 'reviewCount', 'sentiment', 'topPositiveKeywords', 'topNegativeKeywords', 'sampleReviews'],
+    required: ['productName', 'overallRating', 'reviewCount', 'summary', 'verdict', 'sentiment', 'topPositiveKeywords', 'topNegativeKeywords', 'sampleReviews'],
 };
 
 const fileAnalysisSchema = {
@@ -139,7 +141,7 @@ const getDefaultModels = () => {
 
 export const analyzeProductUrl = async (url: string): Promise<ProductAnalysisResult> => {
     const models = getDefaultModels();
-    const prompt = `Critically analyze the product reviews from the URL: ${url}. Provide the product name, overall rating out of 5, and total review count. Summarize the sentiment as percentages for positive, negative, and neutral (ensure they sum to 100). Extract the top 5 most impactful positive keywords and top 5 negative keywords. Also, provide 4 diverse sample reviews with their corresponding sentiment ('Positive', 'Negative', or 'Neutral').`;
+    const prompt = `Critically analyze the product reviews from the URL: ${url}. Provide the product name, overall rating out of 5, and total review count. Summarize the sentiment as percentages for positive, negative, and neutral (ensure they sum to 100). Extract the top 5 most impactful positive keywords and top 5 negative keywords. Also, provide 4 diverse sample reviews with their corresponding sentiment ('Positive', 'Negative', or 'Neutral'). After the analysis, provide a concise one-paragraph summary of the product's reception based on the reviews. Finally, give a clear verdict: 'Recommended', 'Consider', or 'Not Recommended'.`;
     return callGemini(models.pro, prompt, productAnalysisSchema);
 };
 

@@ -28,7 +28,8 @@ export interface BentoProps {
 
 const DEFAULT_PARTICLE_COUNT = 12;
 const DEFAULT_SPOTLIGHT_RADIUS = 300;
-const DEFAULT_GLOW_COLOR = 'var(--color-primary)';
+const DEFAULT_PARTICLE_COLOR = 'var(--color-primary)';
+const DEFAULT_PARTICLE_GLOW_COLOR = 'var(--color-primary-glow)';
 const MOBILE_BREAKPOINT = 768;
 
 const cardData: BentoCardProps[] = [
@@ -48,8 +49,8 @@ const createParticleElement = (x: number, y: number): HTMLDivElement => {
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: ${DEFAULT_GLOW_COLOR};
-    box-shadow: 0 0 6px ${DEFAULT_GLOW_COLOR};
+    background: ${DEFAULT_PARTICLE_COLOR};
+    box-shadow: 0 0 6px ${DEFAULT_PARTICLE_GLOW_COLOR};
     pointer-events: none;
     z-index: 100;
     left: ${x}px;
