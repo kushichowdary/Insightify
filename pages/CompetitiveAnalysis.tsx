@@ -5,6 +5,7 @@ import Icon from '../components/Icon';
 import Loader from '../components/Loader';
 import { compareProducts } from '../services/geminiService';
 import { CompetitiveAnalysisResult, ProductAnalysisResult, Sentiment } from '../types';
+import { useData } from '../contexts/DataContext';
 
 const ProductResultCard: React.FC<{ result: ProductAnalysisResult }> = ({ result }) => {
     return (
@@ -40,6 +41,7 @@ const CompetitiveAnalysis: React.FC<{ addAlert: (message: string, type: 'success
     const [url2, setUrl2] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [results, setResults] = useState<CompetitiveAnalysisResult | null>(null);
+    const { addRecord } = useData();
 
     const handleAnalyze = async () => {
         if (!url1.trim() || !url1.startsWith('http') || !url2.trim() || !url2.startsWith('http')) {
@@ -52,6 +54,17 @@ const CompetitiveAnalysis: React.FC<{ addAlert: (message: string, type: 'success
             const data = await compareProducts(url1, url2);
             setResults(data);
             addAlert('Competitive analysis completed successfully!', 'success');
+            
+            // Save to history
+            addRecord({
+              id: Date.now().toString(),
+              type: 'competitive',
+              date: new Date().toISOString(),
+              timestamp: Date.now(),
+              title: `Vs: ${data.productOne.productName} vs ${data.productTwo.productName}`,
+              data: data
+            });
+
         } catch (error) {
             console.error(error);
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during competitive analysis.";

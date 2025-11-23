@@ -1,7 +1,7 @@
 
+
 export type Sentiment = 'Positive' | 'Negative' | 'Neutral';
 
-// FIX: Add and export the 'Theme' type.
 export type Theme = 'light' | 'dark';
 export type Verdict = 'Recommended' | 'Consider' | 'Not Recommended';
 
@@ -54,6 +54,15 @@ export interface CompetitiveAnalysisResult {
   productOne: ProductAnalysisResult;
   productTwo: ProductAnalysisResult;
   comparisonSummary: string;
+}
+
+export interface AnalysisRecord {
+  id: string;
+  type: 'url' | 'file' | 'text' | 'competitive';
+  date: string;
+  timestamp: number;
+  title: string;
+  data: ProductAnalysisResult | FileAnalysisResult | SingleReviewResult | CompetitiveAnalysisResult;
 }
 
 export type AlertType = 'success' | 'error' | 'info';

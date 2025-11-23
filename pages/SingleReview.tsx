@@ -5,11 +5,13 @@ import Icon from '../components/Icon';
 import Loader from '../components/Loader';
 import { analyzeSingleReview } from '../services/geminiService';
 import { SingleReviewResult, Sentiment } from '../types';
+import { useData } from '../contexts/DataContext';
 
 const SingleReview: React.FC<{ addAlert: (message: string, type: 'success' | 'error' | 'info') => void }> = ({ addAlert }) => {
   const [reviewText, setReviewText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<SingleReviewResult | null>(null);
+  const { addRecord } = useData();
 
   const handleAnalyze = async () => {
     if (!reviewText.trim()) {
@@ -22,6 +24,17 @@ const SingleReview: React.FC<{ addAlert: (message: string, type: 'success' | 'er
       const data = await analyzeSingleReview(reviewText);
       setResults(data);
       addAlert('Review analysis completed!', 'success');
+      
+      // Save to history
+      addRecord({
+        id: Date.now().toString(),
+        type: 'text',
+        date: new Date().toISOString(),
+        timestamp: Date.now(),
+        title: `Snippet: ${reviewText.substring(0, 30)}...`,
+        data: data
+      });
+
     } catch (error) {
       console.error(error);
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";

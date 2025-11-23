@@ -1,31 +1,51 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Card from '../components/Card';
 import Icon from '../components/Icon';
+import { useData } from '../contexts/DataContext';
 
 interface ReportingProps {
   addAlert: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
 const Reporting: React.FC<ReportingProps> = ({ addAlert }) => {
-    const mockReports = [
-        { id: 1, name: "Q2 2024 Electronics Market Analysis", date: "2024-07-15", type: "PDF", size: "2.5MB" },
-        { id: 2, name: "Competitor Benchmark - Phones", date: "2024-07-12", type: "CSV", size: "800KB" },
-        { id: 3, name: "Monthly Sentiment Trend - June", date: "2024-07-01", type: "PDF", size: "1.2MB" },
-        { id: 4, name: "Top 10 Laptops Customer Feedback", date: "2024-06-28", type: "PDF", size: "3.1MB" },
-    ];
+    const { records, deleteRecord } = useData();
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredRecords = records.filter(r => 
+        r.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        r.type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const downloadJSON = (record: any) => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(record.data, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `sentilytics_report_${record.id}.json`);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        addAlert("Report downloaded successfully!", "success");
+    };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in-up">
             <Card>
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                     <div>
-                        <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Generated Reports</h3>
-                        <p className="text-light-text-secondary dark:text-dark-text-secondary">View and download your generated analysis reports.</p>
+                        <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Generated Analysis Reports</h3>
+                        <p className="text-light-text-secondary dark:text-dark-text-secondary">View, download, or manage your analysis history.</p>
                     </div>
-                    <button className="px-4 py-2 bg-brand-primary text-white font-semibold rounded-lg hover:bg-brand-primary-hover transition-colors flex items-center gap-2 self-start md:self-center">
-                        <Icon name="plus" /> Generate New Report
-                    </button>
+                    <div className="relative">
+                        <Icon name="search" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-light-text-secondary dark:text-dark-text-secondary" />
+                        <input 
+                            type="text" 
+                            placeholder="Filter reports..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 pr-4 py-2 bg-light-background dark:bg-black/20 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:outline-none text-light-text dark:text-white"
+                        />
+                    </div>
                 </div>
             </Card>
 
@@ -37,29 +57,60 @@ const Reporting: React.FC<ReportingProps> = ({ addAlert }) => {
                                 <th className="p-3 font-semibold text-sm text-light-text-secondary dark:text-dark-text-secondary">Report Name</th>
                                 <th className="p-3 font-semibold text-sm text-light-text-secondary dark:text-dark-text-secondary">Date</th>
                                 <th className="p-3 font-semibold text-sm text-light-text-secondary dark:text-dark-text-secondary">Type</th>
-                                <th className="p-3 font-semibold text-sm text-light-text-secondary dark:text-dark-text-secondary">Size</th>
                                 <th className="p-3 font-semibold text-sm text-light-text-secondary dark:text-dark-text-secondary text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {mockReports.map(report => (
+                            {filteredRecords.length > 0 ? filteredRecords.map(report => (
                                 <tr key={report.id} className="border-b border-light-border dark:border-dark-border last:border-b-0 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                    <td className="p-3 font-medium text-light-text dark:text-dark-text">{report.name}</td>
-                                    <td className="p-3 text-light-text-secondary dark:text-dark-text-secondary">{report.date}</td>
-                                    <td className="p-3 text-light-text-secondary dark:text-dark-text-secondary">
-                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                            report.type === 'PDF' ? 'bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-300' : 'bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-300'
-                                        }`}>{report.type}</span>
+                                    <td className="p-3 font-medium text-light-text dark:text-dark-text">
+                                        <div className="flex items-center gap-2">
+                                            <Icon name="file-alt" className="text-brand-primary opacity-70" />
+                                            {report.title}
+                                        </div>
                                     </td>
-                                    <td className="p-3 text-light-text-secondary dark:text-dark-text-secondary">{report.size}</td>
+                                    <td className="p-3 text-light-text-secondary dark:text-dark-text-secondary">{new Date(report.date).toLocaleDateString()} {new Date(report.date).toLocaleTimeString()}</td>
+                                    <td className="p-3 text-light-text-secondary dark:text-dark-text-secondary">
+                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full uppercase ${
+                                            report.type === 'url' ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300' : 
+                                            report.type === 'file' ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-800 dark:text-purple-300' :
+                                            report.type === 'competitive' ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-800 dark:text-orange-300' :
+                                            'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
+                                        }`}>
+                                            {report.type}
+                                        </span>
+                                    </td>
                                     <td className="p-3 text-right">
                                         <div className="flex justify-end gap-2">
-                                            <button className="p-2 w-9 h-9 text-light-text-secondary dark:text-dark-text-secondary hover:bg-slate-200 dark:hover:bg-white/10 hover:text-light-text dark:hover:text-white rounded-md transition-colors"><Icon name="download"/></button>
-                                            <button className="p-2 w-9 h-9 text-light-text-secondary dark:text-dark-text-secondary hover:bg-slate-200 dark:hover:bg-white/10 hover:text-light-text dark:hover:text-white rounded-md transition-colors"><Icon name="trash"/></button>
+                                            <button 
+                                                onClick={() => downloadJSON(report)}
+                                                className="p-2 w-9 h-9 text-light-text-secondary dark:text-dark-text-secondary hover:bg-slate-200 dark:hover:bg-white/10 hover:text-brand-primary rounded-md transition-colors"
+                                                title="Download JSON"
+                                            >
+                                                <Icon name="download"/>
+                                            </button>
+                                            <button 
+                                                onClick={() => {
+                                                    if(window.confirm('Are you sure you want to delete this report?')) {
+                                                        deleteRecord(report.id);
+                                                        addAlert('Report deleted', 'info');
+                                                    }
+                                                }}
+                                                className="p-2 w-9 h-9 text-light-text-secondary dark:text-dark-text-secondary hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 rounded-md transition-colors"
+                                                title="Delete"
+                                            >
+                                                <Icon name="trash"/>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                            )) : (
+                                <tr>
+                                    <td colSpan={4} className="p-8 text-center text-light-text-secondary dark:text-dark-text-secondary">
+                                        No reports found.
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

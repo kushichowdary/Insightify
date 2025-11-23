@@ -6,6 +6,7 @@ import Icon from '../components/Icon';
 import Loader from '../components/Loader';
 import { analyzeProductUrl } from '../services/geminiService';
 import { ProductAnalysisResult, Sentiment, Verdict } from '../types';
+import { useData } from '../contexts/DataContext';
 
 const COLORS = { Positive: '#10B981', Negative: '#EF4444', Neutral: '#F59E0B' };
 
@@ -13,6 +14,7 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<ProductAnalysisResult | null>(null);
+  const { addRecord } = useData();
 
   const handleAnalyze = async () => {
     if (!url.trim() || !url.startsWith('http')) {
@@ -25,6 +27,17 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
       const data = await analyzeProductUrl(url);
       setResults(data);
       addAlert('URL analysis completed successfully!', 'success');
+      
+      // Save to history
+      addRecord({
+        id: Date.now().toString(),
+        type: 'url',
+        date: new Date().toISOString(),
+        timestamp: Date.now(),
+        title: data.productName,
+        data: data
+      });
+
     } catch (error) {
       console.error(error);
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";

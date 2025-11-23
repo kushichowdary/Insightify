@@ -6,12 +6,14 @@ import Icon from '../components/Icon';
 import Loader from '../components/Loader';
 import { analyzeReviewFile } from '../services/geminiService';
 import { FileAnalysisResult } from '../types';
+import { useData } from '../contexts/DataContext';
 
 const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'error' | 'info') => void }> = ({ addAlert }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [results, setResults] = useState<FileAnalysisResult | null>(null);
+  const { addRecord } = useData();
 
   const handleFileChange = (selectedFile: File | null) => {
     if (selectedFile) {
@@ -60,6 +62,17 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
             const data = await analyzeReviewFile(text.substring(0, 50000)); 
             setResults(data);
             addAlert('File analysis completed successfully!', 'success');
+            
+            // Save to history
+            addRecord({
+              id: Date.now().toString(),
+              type: 'file',
+              date: new Date().toISOString(),
+              timestamp: Date.now(),
+              title: `File: ${file.name}`,
+              data: data
+            });
+
         } catch (error) {
             console.error(error);
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";

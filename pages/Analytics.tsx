@@ -1,206 +1,212 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React, { useState, useMemo } from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Card from '../components/Card';
-import { sampleAnalyticsData } from '../types';
 import Icon from '../components/Icon';
-import { getSentimentTrends } from '../services/geminiService';
+import { useData } from '../contexts/DataContext';
+import { ProductAnalysisResult } from '../types';
 
-type SortKey = 'name' | 'reviewCount' | 'positive' | 'negative' | 'overallRating';
+type SortKey = 'productName' | 'reviewCount' | 'positive' | 'negative' | 'overallRating' | 'date';
 
 interface AnalyticsProps {
   addAlert: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
 const Analytics: React.FC<AnalyticsProps> = ({ addAlert }) => {
+  const { records, getAnalytics } = useData();
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortConfig, setSortConfig] = useState<{ key: SortKey, direction: 'asc' | 'desc' } | null>(null);
-  const [trendsData, setTrendsData] = useState(sampleAnalyticsData.trendsData);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey, direction: 'asc' | 'desc' }>({ key: 'date', direction: 'desc' });
 
-  useEffect(() => {
-    const fetchTrends = async () => {
-      setIsRefreshing(true);
-      try {
-        const data = await getSentimentTrends();
-        setTrendsData(data);
-      } catch (error) {
-        console.error("Failed to refresh sentiment trends:", error);
-      } finally {
-        setIsRefreshing(false);
-      }
-    };
+  const stats = getAnalytics();
 
-    fetchTrends(); // Initial fetch
-    const intervalId = setInterval(fetchTrends, 30000); // Refresh every 30 seconds
-
-    return () => clearInterval(intervalId); // Cleanup on unmount
-  }, []);
+  // Extract products from records for the table
+  const products = useMemo(() => {
+    return records
+      .filter(r => r.type === 'url')
+      .map(r => ({
+          ...(r.data as ProductAnalysisResult),
+          date: r.date,
+          id: r.id
+      }));
+  }, [records]);
 
   const sortedAndFilteredProducts = useMemo(() => {
-    let products = [...sampleAnalyticsData.sampleProducts];
+    let filtered = [...products];
 
     if (searchQuery) {
-      products = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+      filtered = filtered.filter(p => p.productName.toLowerCase().includes(searchQuery.toLowerCase()));
     }
 
-    if (sortConfig !== null) {
-      products.sort((a, b) => {
-        let aValue: string | number;
-        let bValue: string | number;
+    filtered.sort((a, b) => {
+      let aValue: any = '';
+      let bValue: any = '';
 
-        if (sortConfig.key === 'positive' || sortConfig.key === 'negative') {
-            aValue = a.sentiment[sortConfig.key];
-            bValue = b.sentiment[sortConfig.key];
-        } else {
-            aValue = a[sortConfig.key];
-            bValue = b[sortConfig.key];
-        }
+      switch(sortConfig.key) {
+          case 'productName':
+              aValue = a.productName; bValue = b.productName; break;
+          case 'reviewCount':
+              aValue = a.reviewCount; bValue = b.reviewCount; break;
+          case 'overallRating':
+              aValue = a.overallRating; bValue = b.overallRating; break;
+          case 'positive':
+              aValue = a.sentiment.positive; bValue = b.sentiment.positive; break;
+          case 'negative':
+              aValue = a.sentiment.negative; bValue = b.sentiment.negative; break;
+          case 'date':
+              aValue = new Date(a.date).getTime(); bValue = new Date(b.date).getTime(); break;
+          default:
+              return 0;
+      }
 
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-      });
-    }
-    return products;
-  }, [searchQuery, sortConfig]);
-  
-  const requestSort = (key: SortKey) => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
-  
-  const getSortIcon = (key: SortKey) => {
-    if (!sortConfig || sortConfig.key !== key) {
-      return <Icon name="sort" className="text-gray-500" />;
-    }
-    return sortConfig.direction === 'asc' ? <Icon name="sort-up" /> : <Icon name="sort-down" />;
-  };
-
-  const exportToCsv = () => {
-    if (sortedAndFilteredProducts.length === 0) {
-      addAlert('No data to export.', 'info');
-      return;
-    }
-
-    const headers = ["Product", "Reviews", "Positive %", "Negative %", "Rating"];
-    const rows = sortedAndFilteredProducts.map(p => [
-      `"${p.name.replace(/"/g, '""')}"`,
-      p.reviewCount,
-      p.sentiment.positive,
-      p.sentiment.negative,
-      p.overallRating
-    ]);
-
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += headers.join(",") + "\r\n";
-    rows.forEach(rowArray => {
-      let row = rowArray.join(",");
-      csvContent += row + "\r\n";
+      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
     });
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "product_comparison.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    addAlert('Product comparison data exported successfully!', 'success');
+    return filtered;
+  }, [products, searchQuery, sortConfig]);
+
+  const handleSort = (key: SortKey) => {
+    setSortConfig(current => ({
+      key,
+      direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc',
+    }));
   };
 
-  const SortableHeader: React.FC<{ sortKey: SortKey, children: React.ReactNode }> = ({ sortKey, children }) => (
-    <th className="p-3 font-semibold text-sm text-light-text-secondary dark:text-dark-text-secondary">
-      <button onClick={() => requestSort(sortKey)} className="flex items-center gap-2">
-        {children} {getSortIcon(sortKey)}
-      </button>
-    </th>
-  );
-    
+  const SortIcon: React.FC<{ column: SortKey }> = ({ column }) => {
+    if (sortConfig.key !== column) return <Icon name="sort" className="ml-1 text-xs opacity-30" />;
+    return <Icon name={sortConfig.direction === 'asc' ? 'sort-up' : 'sort-down'} className="ml-1 text-xs text-brand-primary" />;
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 animate-fade-in-up">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="flex items-center gap-4">
+           <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+             <Icon name="search" className="text-xl" />
+           </div>
+           <div>
+             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Total Analyzed</p>
+             <p className="text-2xl font-bold text-light-text dark:text-dark-text">{stats.totalAnalyzed}</p>
+           </div>
+        </Card>
+        <Card className="flex items-center gap-4">
+           <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
+             <Icon name="comments" className="text-xl" />
+           </div>
+           <div>
+             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Total Reviews</p>
+             <p className="text-2xl font-bold text-light-text dark:text-dark-text">{stats.totalReviews.toLocaleString()}</p>
+           </div>
+        </Card>
+        <Card className="flex items-center gap-4">
+           <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
+             <Icon name="smile" className="text-xl" />
+           </div>
+           <div>
+             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Avg Sentiment</p>
+             <p className="text-2xl font-bold text-light-text dark:text-dark-text">{stats.averageSentiment}% Positive</p>
+           </div>
+        </Card>
+      </div>
+
       <Card>
-        <div className="flex justify-between items-center mb-4">
-          <h4 className="text-lg font-semibold text-light-text dark:text-dark-text">Sentiment Trends Over Time</h4>
-          {isRefreshing && (
-            <div className="flex items-center gap-2 text-sm text-light-text-secondary dark:text-dark-text-secondary animate-pulse">
-                <Icon name="sync" className="animate-spin" />
-                <span>Refreshing...</span>
-            </div>
-          )}
-        </div>
-        <div className="w-full h-80">
-          <ResponsiveContainer>
-            <LineChart data={trendsData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--light-border)" className="dark:stroke-dark-border" />
-              <XAxis dataKey="month" tick={{ fill: 'var(--light-text-secondary)', fontSize: 12 }} className="dark:tick-fill-dark-text-secondary"/>
-              <YAxis unit="%" tick={{ fill: 'var(--light-text-secondary)', fontSize: 12 }} className="dark:tick-fill-dark-text-secondary"/>
-              <Tooltip 
-                contentStyle={{ 
-                    backgroundColor: 'var(--light-surface)', 
-                    border: '1px solid var(--light-border)',
-                    color: 'var(--light-text)',
-                 }}
-                 wrapperClassName="dark:!bg-dark-surface/80 dark:!text-dark-text dark:!border-dark-border"
-                 labelStyle={{ color: 'var(--light-text)' }}
-              />
-              <Legend wrapperStyle={{fontSize: "14px", color: "var(--light-text-secondary)"}} className="dark:!text-dark-text-secondary"/>
-              <Line type="monotone" dataKey="positive" stroke="#10B981" strokeWidth={2} name="Positive" dot={{ r: 4 }} activeDot={{ r: 6 }}/>
-              <Line type="monotone" dataKey="negative" stroke="#EF4444" strokeWidth={2} name="Negative" dot={{ r: 4 }} activeDot={{ r: 6 }}/>
-              <Line type="monotone" dataKey="neutral" stroke="#F59E0B" strokeWidth={2} name="Neutral" dot={{ r: 4 }} activeDot={{ r: 6 }}/>
-            </LineChart>
-          </ResponsiveContainer>
+        <h3 className="text-lg font-semibold mb-6 text-light-text dark:text-dark-text">Sentiment Trends (Last 6 Months)</h3>
+        <div className="h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats.trends} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <defs>
+                        <linearGradient id="colorPos" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                        </linearGradient>
+                         <linearGradient id="colorNeg" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" opacity={0.3} />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: 'var(--color-text-secondary)'}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: 'var(--color-text-secondary)'}} />
+                    <Tooltip 
+                        contentStyle={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', borderRadius: '8px' }}
+                        itemStyle={{ color: 'var(--color-text-primary)' }}
+                    />
+                    <Area type="monotone" dataKey="positive" stroke="#10B981" fillOpacity={1} fill="url(#colorPos)" strokeWidth={3} />
+                    <Area type="monotone" dataKey="negative" stroke="#EF4444" fillOpacity={1} fill="url(#colorNeg)" strokeWidth={3} />
+                </AreaChart>
+            </ResponsiveContainer>
         </div>
       </Card>
+
       <Card>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-            <h4 className="text-lg font-semibold text-light-text dark:text-dark-text">Product Comparison</h4>
-            <div className="flex items-center gap-2 w-full md:w-auto">
-                <div className="relative flex-grow md:flex-grow-0">
-                    <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input 
-                        type="text"
-                        placeholder="Search products..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full md:w-64 p-2.5 pl-10 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:outline-none bg-light-background dark:bg-black/20 text-light-text dark:text-white placeholder-gray-500"
-                    />
-                </div>
-                <button onClick={exportToCsv} className="px-4 py-2 bg-brand-primary text-white font-semibold rounded-lg hover:bg-brand-primary-hover transition-colors flex items-center gap-2">
-                    <Icon name="download"/> Export CSV
-                </button>
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <h3 className="text-lg font-semibold text-light-text dark:text-dark-text">Recent Product Analyses</h3>
+            <div className="relative w-full md:w-64">
+                <Icon name="search" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-light-text-secondary dark:text-dark-text-secondary" />
+                <input 
+                    type="text" 
+                    placeholder="Search products..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-light-background dark:bg-black/20 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:outline-none text-light-text dark:text-white placeholder-gray-500"
+                />
             </div>
         </div>
+
         <div className="overflow-x-auto">
-            <table className="w-full text-left">
-                <thead className="bg-slate-100 dark:bg-black/30">
-                    <tr>
-                        <SortableHeader sortKey="name">Product</SortableHeader>
-                        <SortableHeader sortKey="reviewCount">Reviews</SortableHeader>
-                        <SortableHeader sortKey="positive">Positive %</SortableHeader>
-                        <SortableHeader sortKey="negative">Negative %</SortableHeader>
-                        <SortableHeader sortKey="overallRating">Rating</SortableHeader>
+            <table className="w-full text-left border-collapse">
+                <thead>
+                    <tr className="border-b border-light-border dark:border-dark-border">
+                        <th className="p-4 font-semibold text-sm text-light-text-secondary dark:text-dark-text-secondary cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('productName')}>
+                            Product Name <SortIcon column="productName" />
+                        </th>
+                         <th className="p-4 font-semibold text-sm text-light-text-secondary dark:text-dark-text-secondary cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('reviewCount')}>
+                            Reviews <SortIcon column="reviewCount" />
+                        </th>
+                        <th className="p-4 font-semibold text-sm text-light-text-secondary dark:text-dark-text-secondary cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('positive')}>
+                            Sentiment <SortIcon column="positive" />
+                        </th>
+                        <th className="p-4 font-semibold text-sm text-light-text-secondary dark:text-dark-text-secondary cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('overallRating')}>
+                            Rating <SortIcon column="overallRating" />
+                        </th>
+                        <th className="p-4 font-semibold text-sm text-light-text-secondary dark:text-dark-text-secondary cursor-pointer hover:text-brand-primary transition-colors" onClick={() => handleSort('date')}>
+                            Date <SortIcon column="date" />
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-                    {sortedAndFilteredProducts.map(product => (
-                        <tr key={product.name} className="border-b border-light-border dark:border-dark-border last:border-b-0 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                            <td className="p-3 font-medium text-light-text dark:text-dark-text">{product.name}</td>
-                            <td className="p-3 text-light-text-secondary dark:text-dark-text-secondary">{product.reviewCount.toLocaleString()}</td>
-                            <td className="p-3 text-green-600 dark:text-green-400 font-semibold">{product.sentiment.positive}%</td>
-                            <td className="p-3 text-red-600 dark:text-red-400 font-semibold">{product.sentiment.negative}%</td>
-                            <td className="p-3 text-yellow-500 dark:text-yellow-400 font-semibold flex items-center gap-1">
-                                <Icon name="star"/> {product.overallRating}
+                    {sortedAndFilteredProducts.length > 0 ? (
+                        sortedAndFilteredProducts.map(product => (
+                            <tr key={product.id} className="border-b border-light-border dark:border-dark-border last:border-b-0 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                                <td className="p-4 font-medium text-light-text dark:text-dark-text">{product.productName}</td>
+                                <td className="p-4 text-light-text-secondary dark:text-dark-text-secondary">{product.reviewCount.toLocaleString()}</td>
+                                <td className="p-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden w-24">
+                                            <div className="h-full bg-green-500" style={{ width: `${product.sentiment.positive}%` }}></div>
+                                        </div>
+                                        <span className="text-xs font-medium text-green-600 dark:text-green-400">{product.sentiment.positive}%</span>
+                                    </div>
+                                </td>
+                                <td className="p-4">
+                                    <div className="flex items-center gap-1 text-yellow-500">
+                                        <span className="text-light-text dark:text-dark-text font-medium">{product.overallRating}</span>
+                                        <Icon name="star" className="text-xs" />
+                                    </div>
+                                </td>
+                                <td className="p-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+                                    {new Date(product.date).toLocaleDateString()}
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan={5} className="p-8 text-center text-light-text-secondary dark:text-dark-text-secondary">
+                                No data available. Analyze some product URLs to see them here!
                             </td>
                         </tr>
-                    ))}
+                    )}
                 </tbody>
             </table>
         </div>

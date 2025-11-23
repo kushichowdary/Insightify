@@ -1,20 +1,16 @@
-
 import React, { useState } from 'react';
 import Icon from '../components/Icon';
 import DotGrid from '../components/DotGrid';
 import { auth } from '../firebase';
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from 'firebase/auth';
-import { AlertType } from '../types';
+// FIX: Import firebase compat to get auth providers and methods
+import firebase from 'firebase/compat/app';
+import { AlertType, AccentColor, Theme } from '../types';
 import ScrambledText from '../components/ScrambledText';
 
 interface LoginProps {
   addAlert: (message: string, type: AlertType) => void;
+  accentColor: AccentColor | null;
+  theme: Theme;
 }
 
 // Firebase error handler
@@ -116,7 +112,7 @@ const AuthForm: React.FC<{
   );
 };
 
-const Login: React.FC<LoginProps> = ({ addAlert }) => {
+const Login: React.FC<LoginProps> = ({ addAlert, accentColor, theme }) => {
   const [isLoginView, setIsLoginView] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -129,11 +125,14 @@ const Login: React.FC<LoginProps> = ({ addAlert }) => {
     setIsLoading(true);
     try {
       if (isLoginView) {
-        await signInWithEmailAndPassword(auth, email, password);
+        // FIX: Use compat syntax for signInWithEmailAndPassword
+        await auth.signInWithEmailAndPassword(email, password);
       } else {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // FIX: Use compat syntax for createUserWithEmailAndPassword
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         if (userCredential.user) {
-          await updateProfile(userCredential.user, { displayName: fullName });
+          // FIX: Use compat syntax for updateProfile
+          await userCredential.user.updateProfile({ displayName: fullName });
         }
       }
     } catch (error: any) {
@@ -146,15 +145,25 @@ const Login: React.FC<LoginProps> = ({ addAlert }) => {
   // Handle Google Auth
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    const provider = new GoogleAuthProvider();
+    // FIX: Use compat syntax for GoogleAuthProvider
+    const provider = new firebase.auth.GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      // FIX: Use compat syntax for signInWithPopup
+      await auth.signInWithPopup(provider);
     } catch (error: any) {
       addAlert(getFirebaseErrorMessage(error.code), 'error');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const titleStyle: React.CSSProperties = {
+    color: 'var(--color-primary)',
+    textShadow: '0 0 25px var(--color-primary-glow)'
+  };
+  
+  const lightActiveColor = accentColor?.main || '#3b82f6';
+  const darkActiveColor = accentColor?.main || '#f038d1';
 
   // UI Elements
   const OrSeparator = () => (
@@ -175,7 +184,7 @@ const Login: React.FC<LoginProps> = ({ addAlert }) => {
           dotSize={3}
           gap={30}
           baseColor="#d1d5db"
-          activeColor="#3b82f6"
+          activeColor={lightActiveColor}
           proximity={120}
           shockStrength={3}
           className="w-full h-full"
@@ -186,7 +195,7 @@ const Login: React.FC<LoginProps> = ({ addAlert }) => {
           dotSize={3}
           gap={30}
           baseColor="#392e4e"
-          activeColor="#f038d1"
+          activeColor={darkActiveColor}
           proximity={120}
           shockStrength={3}
           className="w-full h-full"
@@ -194,11 +203,12 @@ const Login: React.FC<LoginProps> = ({ addAlert }) => {
       </div>
 
       {/* Login Card */}
-      <div className="w-full max-w-md z-10 group">
+      <div className="w-full max-w-sm z-10 group animate-float">
         <div className="text-center mb-8">
           <ScrambledText 
             className="!m-0 !max-w-full !font-sans !text-4xl !font-bold text-center justify-center"
             radius={150}
+            style={titleStyle}
           >
             Sentilytics
           </ScrambledText>

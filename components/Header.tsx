@@ -1,13 +1,14 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { User as FirebaseUser } from 'firebase/auth';
+// FIX: Changed import to use firebase compat to get User type.
+import firebase from 'firebase/compat/app';
 import Icon from './Icon';
 import ThemeSwitch from './ThemeSwitch';
 import { Theme } from '../types';
 
 interface HeaderProps {
   title: string;
-  user: FirebaseUser;
+  // FIX: Use firebase.User for the user prop type.
+  user: firebase.User;
   onLogout: () => void;
   onSettingsClick: () => void;
   onAppSettingsClick: () => void;
