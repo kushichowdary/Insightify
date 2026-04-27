@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidTheme(theme) {
+      return theme == 'light' || theme == 'dark';
+    }
+
+    function isValidRole(role) {
+      return role == 'Admin' || role == 'Analyst';
+    }
+
+    function isValidUserProfile(data) {
+      let hasRequired = data.keys().hasAll(['uid', 'name', 'email', 'role', 'theme', 'notificationsEnabled', 'createdAt']);
+      
+      let uidValid = data.uid is string && data.uid.size() <= 128 && data.uid == request.auth.uid;
+      let nameValid = data.name is string && data.name.size() <= 128;
+      let emailValid = data.email is string && data.email.size() <= 128;
+      let roleValid = isValidRole(data.role);
+      let themeValid = isValidTheme(data.theme);
+      let notificationsValid = data.notificationsEnabled is bool;
+      let createdValid = data.createdAt is int;
+
+      // avatar and accentColor are optional
+      let avatarValid = !('avatar' in data) || (data.avatar is string && data.avatar.size() <= 1024);
+      let accentColorValid = !('accentColor' in data) || data.accentColor is map;
+
+      return hasRequired && uidValid && nameValid && emailValid && roleValid && themeValid && notificationsValid && createdValid && avatarValid && accentColorValid;
+    }
+
+    function isValidNotification(data) {
+      let hasRequired = data.keys().hasAll(['title', 'message', 'type', 'timestamp', 'read']);
+
+      let titleValid = data.title is string && data.title.size() <= 200;
+      let messageValid = data.message is string && data.message.size() <= 1000;
+      let typeValid = data.type == 'info' || data.type == 'success' || data.type == 'warning' || data.type == 'error';
+      let timestampValid = data.timestamp is int;
+      let readValid = data.read is bool;
+
+      return hasRequired && titleValid && messageValid && typeValid && timestampValid && readValid;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming()) && incoming().keys().size() >= 7;
+      
+      // Updates are mostly for profile details like theme, accentColor, notificationsEnabled
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'avatar', 'theme', 'accentColor', 'notificationsEnabled'])
+      );
+      
+      match /notifications/{notificationId} {
+        allow list: if isOwner(userId) && isValidId(userId);
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(notificationId) && existing().keys().hasAll(['title', 'message', 'type', 'timestamp', 'read']);
+        
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(notificationId) && isValidNotification(incoming());
+        
+        allow update: if isOwner(userId) && isValidId(userId) && isValidId(notificationId) && isValidNotification(incoming()) && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['read'])
+        );
+
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(notificationId);
+      }
+    }
+  }
+}
