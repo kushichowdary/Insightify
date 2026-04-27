@@ -80,7 +80,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onTabChange, accentColor, theme }
         </div>
 
         {/* Action Grid */}
-        <div className="animate-fade-in-up">
+        <div className="animate-fade-in-up flex justify-center w-full">
             <MagicBento 
               onTabChange={onTabChange}
               enableStars={true}
@@ -93,44 +93,72 @@ const Dashboard: React.FC<DashboardProps> = ({ onTabChange, accentColor, theme }
         </div>
 
         {/* Stats & Trends Section */}
-        <div className="grid grid-cols-1 gap-6 animate-fade-in">
-            <Card className="border-l-4 border-brand-primary">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold flex items-center gap-2">
-                        <Icon name="chart-area" className="text-brand-primary" />
-                        Platform Sentiment Velocity
-                    </h3>
-                    <div className="flex gap-4">
-                        <div className="text-right">
-                             <p className="text-[10px] text-slate-400 uppercase font-bold">Avg Sentiment</p>
-                             <p className="text-lg font-black text-brand-primary">{stats.averageSentiment}%</p>
-                        </div>
-                        <div className="text-right">
-                             <p className="text-[10px] text-slate-400 uppercase font-bold">Signals</p>
-                             <p className="text-lg font-black text-brand-primary">{stats.totalReviews.toLocaleString()}</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="h-64 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={stats.trends}>
-                            <defs>
-                                <linearGradient id="colorPosDash" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3}/>
-                                    <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" opacity={0.1} />
-                            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: 'var(--color-text-secondary)', fontSize: 12}} />
-                            <YAxis hide />
-                            <Tooltip 
-                                contentStyle={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', borderRadius: '12px' }}
-                            />
-                            <Area type="monotone" dataKey="positive" stroke="var(--color-primary)" fillOpacity={1} fill="url(#colorPosDash)" strokeWidth={4} />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                </div>
-            </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in w-full">
+            <div className="md:col-span-2">
+              <Card className="border-l-4 border-brand-primary h-full flex flex-col justify-between">
+                  <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl font-bold flex items-center gap-2">
+                          <Icon name="chart-area" className="text-brand-primary" />
+                          Platform Sentiment Velocity
+                      </h3>
+                  </div>
+                  <div className="h-64 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={stats.trends}>
+                              <defs>
+                                  <linearGradient id="colorPosDash" x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3}/>
+                                      <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                                  </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" opacity={0.1} />
+                              <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: 'var(--color-text-secondary)', fontSize: 12}} />
+                              <YAxis hide />
+                              <Tooltip 
+                                  contentStyle={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)', borderRadius: '12px' }}
+                              />
+                              <Area type="monotone" dataKey="positive" stroke="var(--color-primary)" fillOpacity={1} fill="url(#colorPosDash)" strokeWidth={4} />
+                          </AreaChart>
+                      </ResponsiveContainer>
+                  </div>
+              </Card>
+            </div>
+            
+            <div className="space-y-6 flex flex-col justify-between">
+                <Card className="bg-brand-primary/5 border-brand-primary/20 hover:-translate-y-1 transition-transform">
+                     <div className="flex items-center gap-4">
+                         <div className="p-4 bg-brand-primary/20 rounded-xl text-brand-primary">
+                             <Icon name="file-alt" className="text-2xl" />
+                         </div>
+                         <div>
+                             <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary uppercase font-bold tracking-wider">Total Reports</p>
+                             <p className="text-3xl font-black text-light-text dark:text-white">{stats.totalAnalyzed}</p>
+                         </div>
+                     </div>
+                </Card>
+                <Card className="bg-blue-500/5 border-blue-500/20 hover:-translate-y-1 transition-transform">
+                     <div className="flex items-center gap-4">
+                         <div className="p-4 bg-blue-500/20 rounded-xl text-blue-500">
+                             <Icon name="users" className="text-2xl" />
+                         </div>
+                         <div>
+                             <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary uppercase font-bold tracking-wider">Reviews Processed</p>
+                             <p className="text-3xl font-black text-light-text dark:text-white">{stats.totalReviews.toLocaleString()}</p>
+                         </div>
+                     </div>
+                </Card>
+                <Card className="bg-green-500/5 border-green-500/20 hover:-translate-y-1 transition-transform">
+                     <div className="flex items-center gap-4">
+                         <div className="p-4 bg-green-500/20 rounded-xl text-green-500">
+                             <Icon name="smile" className="text-2xl" />
+                         </div>
+                         <div>
+                             <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary uppercase font-bold tracking-wider">Avg Positive Sent</p>
+                             <p className="text-3xl font-black text-light-text dark:text-white">{stats.averageSentiment}%</p>
+                         </div>
+                     </div>
+                </Card>
+            </div>
         </div>
       </div>
     </div>
