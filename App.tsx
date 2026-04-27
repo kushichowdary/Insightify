@@ -1,7 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-// FIX: Import firebase compat library to get User type and auth methods.
-import firebase from 'firebase/compat/app';
+import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './firebase';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -23,8 +22,7 @@ import { UserProvider, useUser } from './contexts/UserContext';
 
 const AppContent: React.FC = () => {
   const { profile, updateTheme, updateAccent } = useUser();
-  // FIX: Use firebase.User for user state type.
-  const [user, setUser] = useState<firebase.User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [alerts, setAlerts] = useState<AlertMessage[]>([]);
@@ -41,8 +39,7 @@ const AppContent: React.FC = () => {
   }, [profile]);
   
   useEffect(() => {
-    // FIX: Use compat syntax for onAuthStateChanged.
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setAuthLoading(false);
     });
@@ -141,8 +138,7 @@ const AppContent: React.FC = () => {
   };
   
   const handleLogout = () => {
-    // FIX: Use compat syntax for signOut.
-    auth.signOut().then(() => {
+    signOut(auth).then(() => {
         setActiveTab('dashboard');
         addAlert('You have been logged out.', 'info');
     }).catch((error) => {

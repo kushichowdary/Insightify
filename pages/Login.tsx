@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import Icon from '../components/Icon';
 import DotGrid from '../components/DotGrid';
 import { auth } from '../firebase';
-// FIX: Import firebase compat to get auth providers and methods
-import firebase from 'firebase/compat/app';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { AlertType, AccentColor, Theme } from '../types';
 import ScrambledText from '../components/ScrambledText';
 
@@ -135,14 +134,11 @@ const Login: React.FC<LoginProps> = ({ addAlert, accentColor, theme }) => {
     setIsLoading(true);
     try {
       if (isLoginView) {
-        // FIX: Use compat syntax for signInWithEmailAndPassword
-        await auth.signInWithEmailAndPassword(email, password);
+        await signInWithEmailAndPassword(auth, email, password);
       } else {
-        // FIX: Use compat syntax for createUserWithEmailAndPassword
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         if (userCredential.user) {
-          // FIX: Use compat syntax for updateProfile
-          await userCredential.user.updateProfile({ displayName: fullName });
+          await updateProfile(userCredential.user, { displayName: fullName });
         }
       }
     } catch (error: any) {
@@ -155,11 +151,9 @@ const Login: React.FC<LoginProps> = ({ addAlert, accentColor, theme }) => {
   // Handle Google Auth
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    // FIX: Use compat syntax for GoogleAuthProvider
-    const provider = new firebase.auth.GoogleAuthProvider();
+    const provider = new GoogleAuthProvider();
     try {
-      // FIX: Use compat syntax for signInWithPopup
-      await auth.signInWithPopup(provider);
+      await signInWithPopup(auth, provider);
     } catch (error: any) {
       addAlert(getFirebaseErrorMessage(error.code), 'error');
     } finally {

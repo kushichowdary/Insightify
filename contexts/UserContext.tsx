@@ -1,6 +1,7 @@
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import firebase from 'firebase/compat/app';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User, onAuthStateChanged } from 'firebase/auth';
+import { doc, onSnapshot, setDoc, updateDoc, collection, query, orderBy, limit, deleteField, writeBatch, addDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { UserProfile, Notification, Theme, AccentColor } from '../types';
 
@@ -25,13 +26,13 @@ export const useUser = () => {
 };
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<firebase.User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((u) => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (!u) {
         setProfile(null);
@@ -46,9 +47,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
 
     // Real-time Profile Listener
-    const profileUnsubscribe = db.collection('users').doc(user.uid).onSnapshot((doc) => {
-      if (doc.exists) {
-        setProfile(doc.data() as UserProfile);
+    const profileRef = doc(db, 'users', user.uid);
+    const profileUnsubscribe = onSnapshot(profileRef, (snap) => {
+      if (snap.exists()) {
+        setProfile(snap.data() as UserProfile);
       } else {
         // Initialize profile if it doesn't exist
         const initialProfile: UserProfile = {
@@ -61,7 +63,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           notificationsEnabled: true,
           createdAt: Date.now()
         };
-        db.collection('users').doc(user.uid).set(initialProfile);
+        setDoc(profileRef, initialProfile);
       }
       setLoading(false);
     }, (error) => {
@@ -70,14 +72,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     // Real-time Notifications Listener
-    const notificationsUnsubscribe = db.collection('users').doc(user.uid)
-      .collection('notifications')
-      .orderBy('timestamp', 'desc')
-      .limit(20)
-      .onSnapshot((snapshot) => {
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification));
-        setNotifications(items);
-      });
+    const notifQuery = query(
+      collection(db, 'users', user.uid, 'notifications'),
+      orderBy('timestamp', 'desc'),
+      limit(20)
+    );
+    const notificationsUnsubscribe = onSnapshot(notifQuery, (snapshot) => {
+      const items = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as Notification));
+      setNotifications(items);
+    });
 
     return () => {
       profileUnsubscribe();
@@ -87,7 +90,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (data: Partial<UserProfile>) => {
     if (!user) return;
-    await db.collection('users').doc(user.uid).update(data);
+    await updateDoc(doc(db, 'users', user.uid), data);
   };
 
   const updateTheme = async (theme: Theme) => {
@@ -97,7 +100,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateAccent = async (accentColor: AccentColor | null) => {
     if (!user) return;
     if (accentColor === null) {
-      await db.collection('users').doc(user.uid).update({ accentColor: firebase.firestore.FieldValue.delete() });
+      await updateDoc(doc(db, 'users', user.uid), { accentColor: deleteField() });
     } else {
       await updateProfile({ accentColor });
     }
@@ -105,21 +108,21 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const markAsRead = async (id: string) => {
     if (!user) return;
-    await db.collection('users').doc(user.uid).collection('notifications').doc(id).update({ read: true });
+    await updateDoc(doc(db, 'users', user.uid, 'notifications', id), { read: true });
   };
 
   const clearNotifications = async () => {
     if (!user) return;
-    const batch = db.batch();
+    const batch = writeBatch(db);
     notifications.forEach(n => {
-      batch.delete(db.collection('users').doc(user.uid).collection('notifications').doc(n.id));
+      batch.delete(doc(db, 'users', user.uid, 'notifications', n.id));
     });
     await batch.commit();
   };
 
   const addNotification = async (n: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     if (!user) return;
-    await db.collection('users').doc(user.uid).collection('notifications').add({
+    await addDoc(collection(db, 'users', user.uid, 'notifications'), {
       ...n,
       timestamp: Date.now(),
       read: false

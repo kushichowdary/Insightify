@@ -1,19 +1,8 @@
-import firebase from "firebase/compat/app";
-import "firebase/compat/auth";
-import "firebase/compat/firestore";
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import firebaseConfig from './firebase-applet-config.json';
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyChWitC41XldL8vysrUzNjVMiZxp9-6gPY",
-  authDomain: "sentilytics-f67ec.firebaseapp.com",
-  projectId: "sentilytics-f67ec",
-  storageBucket: "sentilytics-f67ec.firebasestorage.app",
-  messagingSenderId: "834867451324",
-  appId: "1:834867451324:web:7e56e792c29873710807b9",
-  measurementId: "G-5SWY0CYXTN"
-};
-
-// FIX: Use compat library for initialization
-const app = firebase.initializeApp(firebaseConfig);
-export const auth = firebase.auth();
-export const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId); /* CRITICAL: The app will break without this line */
+export const auth = getAuth();
