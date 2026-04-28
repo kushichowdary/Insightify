@@ -162,6 +162,12 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
                           <Icon name="comments"/>
                           <span>{results.reviewCount.toLocaleString()} reviews</span>
                       </div>
+                      {results.price && (
+                        <div className="flex items-center gap-1 font-semibold text-light-text dark:text-white">
+                          <Icon name="tag"/>
+                          <span>{results.price}</span>
+                        </div>
+                      )}
                   </div>
                   <p className="text-sm mt-4 text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">{results.summary}</p>
               </div>

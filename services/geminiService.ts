@@ -41,6 +41,7 @@ const productAnalysisSchema = {
     type: Type.OBJECT,
     properties: {
       productName: { type: Type.STRING },
+      price: { type: Type.STRING, description: "The price of the product, e.g., '$99.99' or '₹54,999'" },
       overallRating: { type: Type.NUMBER },
       reviewCount: { type: Type.INTEGER },
       summary: { type: Type.STRING, description: "A concise one-paragraph summary of the product's reception based on reviews." },
@@ -78,6 +79,7 @@ const fileAnalysisSchema = {
     type: Type.OBJECT,
     properties: {
       totalReviews: { type: Type.INTEGER },
+      datasetSummary: { type: Type.STRING, description: "A high-level summary paragraph describing the core themes, major complaints, and things people loved most across the dataset." },
       sentimentDistribution: {
         type: Type.OBJECT,
         properties: {
@@ -99,7 +101,7 @@ const fileAnalysisSchema = {
       wordCloud: { type: Type.ARRAY, items: wordCloudSchema },
       fakeReviewProbability: { type: Type.NUMBER },
     },
-    required: ['totalReviews', 'sentimentDistribution', 'topKeywords', 'aspects', 'wordCloud', 'fakeReviewProbability'],
+    required: ['totalReviews', 'datasetSummary', 'sentimentDistribution', 'topKeywords', 'aspects', 'wordCloud', 'fakeReviewProbability'],
 };
 
 const globalSearchSchema = {
@@ -168,9 +170,17 @@ const competitiveAnalysisSchema = {
     properties: {
         productOne: productAnalysisSchema,
         productTwo: productAnalysisSchema,
-        comparisonSummary: { type: Type.STRING, description: "A detailed summary comparing the two products." }
+        comparisonSummary: { type: Type.STRING, description: "A detailed summary comparing the two products." },
+        recommendation: {
+            type: Type.OBJECT,
+            properties: {
+                recommendedProduct: { type: Type.STRING, description: "The name of the recommended product, or 'Tie'" },
+                reason: { type: Type.STRING, description: "Why this product is recommended over the other, accounting for price and reviews" }
+            },
+            required: ['recommendedProduct', 'reason']
+        }
     },
-    required: ['productOne', 'productTwo', 'comparisonSummary']
+    required: ['productOne', 'productTwo', 'comparisonSummary', 'recommendation']
 };
 
 
@@ -178,7 +188,7 @@ const competitiveAnalysisSchema = {
  * A generic function to call the Gemini API with a given prompt and response schema.
  * This centralizes the API call logic and error handling.
  */
-const callGemini = async <T>(modelName: string, prompt: string, schema: any): Promise<T> => {
+const callGemini = async <T>(modelName: string, prompt: string, schema: any, useSearch: boolean = false): Promise<T> => {
     try {
         const ai = getAi();
         const response = await ai.models.generateContent({
@@ -187,6 +197,7 @@ const callGemini = async <T>(modelName: string, prompt: string, schema: any): Pr
             config: {
                 responseMimeType: 'application/json',
                 responseSchema: schema,
+                ...(useSearch ? { tools: [{ googleSearch: {} }] } : {})
             },
         });
         
@@ -220,24 +231,25 @@ export const analyzeProductUrl = async (url: string): Promise<ProductAnalysisRes
     2. Sentiment percentages (Positive, Negative, Neutral).
     3. Top 5 impactful positive and 5 negative keywords.
     4. 4 diverse sample reviews.
-    5. Aspect-based sentiment: Analyze specific categories like 'Quality', 'Value', 'Ease of Use', 'Performance', 'Design' and provide a score (0-100) and sentiment for each.
+    5. Aspect-based sentiment: Analyze specific categories like 'Battery', 'Camera', 'Display', 'Performance', 'Value', etc. and provide a score (0-100) and sentiment for each.
     6. Word Cloud data: Provide at least 15 important words/phrases with frequency values.
     7. Fake Review Detection: Analyze patterns in language and metadata to determine the probability (0-100) that some reviews are fabricated or incentivized.
     8. A concise summary and clear verdict.`;
-    return callGemini('gemini-2.5-pro', prompt, productAnalysisSchema);
+    return callGemini('gemini-3.1-pro-preview', prompt, productAnalysisSchema, true);
 };
 
 export const analyzeReviewFile = async (fileContent: string): Promise<FileAnalysisResult> => {
     const prompt = `Analyze the following text which contains multiple product reviews.
     Provide:
     1. Total reviews frequency.
-    2. Sentiment distribution.
-    3. Top 4 positive and 4 negative keywords.
-    4. Aspect-based analysis for the entire data set (Quality, Price, Delivery, etc.).
-    5. Word cloud data (at least 15 items).
-    6. Fake review probability for the overall dataset.
+    2. A comprehensive dataset summary highlighting the main themes, overall user satisfaction, and notable trends observed in the provided dataset.
+    3. Sentiment distribution.
+    4. Top 4 positive and 4 negative keywords.
+    5. Aspect-based sentiment: Analyze specific explicit categories (e.g. 'Quality', 'Price', 'Delivery', 'Customer Service', etc.) and provide a score (0-100) and sentiment for each.
+    6. Word cloud data (at least 15 items).
+    7. Fake review probability for the overall dataset.
     Here is the review data: \n\n${fileContent}`;
-    return callGemini('gemini-2.5-flash', prompt, fileAnalysisSchema);
+    return callGemini('gemini-3-flash-preview', prompt, fileAnalysisSchema);
 };
 
 export const performGlobalSearch = async (query: string): Promise<GlobalSearchResult> => {
@@ -255,21 +267,22 @@ export const performGlobalSearch = async (query: string): Promise<GlobalSearchRe
     8. Indian market-specific details like upcoming sale eligibility or bank card offers (HDFC, ICICI, etc).
     
     Return the data in the specified JSON structure. Ensure pricing reflects actual current Indian market trends.`;
-    return callGemini('gemini-2.5-pro', prompt, globalSearchSchema);
+    return callGemini('gemini-3.1-pro-preview', prompt, globalSearchSchema, true);
 };
 
 export const analyzeSingleReview = async (reviewText: string): Promise<SingleReviewResult> => {
     const prompt = `Analyze the sentiment of this review: "${reviewText}". Classify it as 'Positive', 'Negative', or 'Neutral'. Provide a confidence score from 0 to 1. Give a brief, one-sentence explanation for your classification.`;
-    return callGemini('gemini-2.5-flash', prompt, singleReviewSchema);
+    return callGemini('gemini-3-flash-preview', prompt, singleReviewSchema);
 };
 
 export const compareProducts = async (url1: string, url2: string): Promise<CompetitiveAnalysisResult> => {
     const prompt = `Perform a comprehensive competitive analysis of the products from two URLs.
     URL 1: ${url1}
     URL 2: ${url2}
-    For each product, provide a full analysis using the provided schema (product name, overall rating, review count, sentiment breakdown, top 5 keywords, and 4 sample reviews).
-    After analyzing both, provide a concise but insightful comparative summary (3-4 sentences) highlighting the key differentiators, target audiences, and relative strengths/weaknesses.`;
-    return callGemini('gemini-2.5-pro', prompt, competitiveAnalysisSchema);
+    For each product, provide a full analysis using the provided schema (product name, price, overall rating, review count, sentiment breakdown, top 5 keywords, and 4 sample reviews).
+    After analyzing both, provide a concise but insightful comparative summary (3-4 sentences) highlighting the key differentiators, target audiences, and relative strengths/weaknesses.
+    Crucially, make a final recommendation on which product is best, and explain why (considering both price and review sentiment). Format this recommendation cleanly according to the schema.`;
+    return callGemini('gemini-3.1-pro-preview', prompt, competitiveAnalysisSchema, true);
 }
 
 // Mocked service for sentiment trends, remains unchanged

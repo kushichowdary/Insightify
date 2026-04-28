@@ -147,10 +147,14 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
         <div className="animate-fade-in-up space-y-6">
             <Card>
                 <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Analysis Summary</h3>
-                <div className="flex items-center justify-around text-center">
-                    <div>
-                        <p className="text-3xl font-bold text-brand-primary" style={{ textShadow: '0 0 10px rgba(240, 56, 209, 0.5)' }}>{results.totalReviews.toLocaleString()}</p>
-                        <p className="text-light-text-secondary dark:text-dark-text-secondary">Total Reviews</p>
+                <div className="flex flex-col md:flex-row items-center gap-8">
+                    <div className="text-center md:w-1/3 shrink-0">
+                        <p className="text-4xl font-bold text-brand-primary" style={{ textShadow: '0 0 10px rgba(240, 56, 209, 0.5)' }}>{results.totalReviews.toLocaleString()}</p>
+                        <p className="text-light-text-secondary dark:text-dark-text-secondary mt-2">Total Reviews Analyzed</p>
+                    </div>
+                    <div className="md:w-2/3 md:border-l md:border-light-border md:dark:border-dark-border md:pl-8">
+                        <h4 className="font-semibold text-light-text dark:text-dark-text mb-2 flex items-center gap-2"><Icon name="file-alt" /> Dataset Insights</h4>
+                        <p className="text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">{results.datasetSummary}</p>
                     </div>
                 </div>
             </Card>

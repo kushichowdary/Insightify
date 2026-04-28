@@ -73,6 +73,7 @@ export interface GlobalSearchResult {
 
 export interface FileAnalysisResult {
   totalReviews: number;
+  datasetSummary: string;
   sentimentDistribution: {
     positive: number;
     negative: number;
@@ -94,9 +95,13 @@ export interface SingleReviewResult {
 }
 
 export interface CompetitiveAnalysisResult {
-  productOne: ProductAnalysisResult;
-  productTwo: ProductAnalysisResult;
+  productOne: ProductAnalysisResult & { price?: string };
+  productTwo: ProductAnalysisResult & { price?: string };
   comparisonSummary: string;
+  recommendation: {
+    recommendedProduct: string; // "Product One" | "Product Two" | "Tie"
+    reason: string;
+  };
 }
 
 export interface AnalysisRecord {

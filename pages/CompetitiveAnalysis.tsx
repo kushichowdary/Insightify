@@ -7,14 +7,16 @@ import { compareProducts } from '../services/geminiService';
 import { CompetitiveAnalysisResult, ProductAnalysisResult, Sentiment } from '../types';
 import { useData } from '../contexts/DataContext';
 import { useUser } from '../contexts/UserContext';
+import AspectChart from '../components/AspectChart';
 
-const ProductResultCard: React.FC<{ result: ProductAnalysisResult }> = ({ result }) => {
+const ProductResultCard: React.FC<{ result: ProductAnalysisResult & { price?: string } }> = ({ result }) => {
     return (
         <div className="space-y-4">
             <h3 className="text-xl font-bold text-light-text dark:text-dark-text">{result.productName}</h3>
             <div className="flex items-center gap-4 text-light-text-secondary dark:text-dark-text-secondary">
                 <div className="flex items-center gap-1 text-yellow-500 dark:text-yellow-400"><Icon name="star" /> <span className="font-semibold text-light-text dark:text-dark-text">{result.overallRating}/5</span></div>
                 <div className="flex items-center gap-1"><Icon name="comments" /> {result.reviewCount.toLocaleString()} reviews</div>
+                {result.price && <div className="flex items-center gap-1 font-semibold text-light-text dark:text-white"><Icon name="tag" /> {result.price}</div>}
             </div>
             <div className="flex justify-around text-center p-2 bg-slate-100 dark:bg-black/30 border border-light-border dark:border-dark-border rounded-lg">
                 <div><p className="font-bold text-green-600 dark:text-green-400">{result.sentiment.positive}%</p><p className="text-xs text-light-text-secondary dark:text-dark-text-secondary">Positive</p></div>
@@ -33,6 +35,12 @@ const ProductResultCard: React.FC<{ result: ProductAnalysisResult }> = ({ result
                     {result.topNegativeKeywords.slice(0, 3).map(kw => <span key={kw} className="bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-300 text-xs font-medium px-2.5 py-0.5 rounded-full">{kw}</span>)}
                 </div>
             </div>
+            {result.aspects && result.aspects.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-light-border dark:border-dark-border">
+                    <h4 className="font-semibold text-indigo-600 dark:text-indigo-400 mb-4 text-sm flex items-center gap-2"><Icon name="layer-group" /> Feature Ratings</h4>
+                    <AspectChart aspects={result.aspects} />
+                </div>
+            )}
         </div>
     )
 };
@@ -115,6 +123,20 @@ const CompetitiveAnalysis: React.FC<{ addAlert: (message: string, type: 'success
                         </h3>
                         <p className="text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">{results.comparisonSummary}</p>
                     </Card>
+                    {results.recommendation && (
+                        <Card className="bg-brand-primary/10 border-brand-primary">
+                            <h3 className="text-xl font-bold mb-3 flex items-center gap-2 text-brand-primary">
+                                <Icon name="check-circle" /> Overall Recommendation
+                            </h3>
+                            <div className="mb-2">
+                                <span className="font-semibold text-light-text dark:text-white">Winner: </span>
+                                <span className="text-lg text-brand-primary font-bold">{results.recommendation.recommendedProduct}</span>
+                            </div>
+                            <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm md:text-base leading-relaxed">
+                                {results.recommendation.reason}
+                            </p>
+                        </Card>
+                    )}
                 </div>
             )}
         </div>

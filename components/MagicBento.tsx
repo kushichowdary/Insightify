@@ -37,7 +37,6 @@ const cardData: BentoCardProps[] = [
     { tabId: 'competitive-analysis', title: 'Competitor Analysis', description: 'Compare two products side-by-side', label: 'Compare' },
     { tabId: 'analytics', title: 'Analytics', description: 'View trends and product data', label: 'Insights' },
     { tabId: 'file-upload', title: 'File Upload', description: 'Bulk analyze reviews from a file', label: 'Dataset' },
-    { tabId: 'single-review', title: 'Single Review', description: 'Get sentiment for one review', label: 'Text' },
     { tabId: 'reporting', title: 'Reporting', description: 'Generate and view reports', label: 'Reports' }
 ];
 
