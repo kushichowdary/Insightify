@@ -6,9 +6,9 @@ let aiInstance: GoogleGenAI | null = null;
 
 const getAi = () => {
     if (!aiInstance) {
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = import.meta.env?.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
         if (!apiKey) {
-            throw new Error("Missing Gemini API Key. Please configure GEMINI_API_KEY in your .env file or environment variables.");
+            throw new Error("Missing Gemini API Key. Please configure VITE_GEMINI_API_KEY in your .env file or environment variables.");
         }
         aiInstance = new GoogleGenAI({ apiKey });
     }
@@ -190,14 +190,20 @@ const competitiveAnalysisSchema = {
 const callGemini = async <T>(modelName: string, prompt: string, schema: any, useSearch: boolean = false): Promise<T> => {
     try {
         const ai = getAi();
+        const config: any = {};
+        
+        if (useSearch) {
+            config.tools = [{ googleSearch: {} }];
+            prompt += '\n\nIMPORTANT: You must output ONLY valid, raw JSON. Do NOT wrap it in markdown code blocks. Do not include any prefixed text. Your response MUST strictly adhere to this JSON Schema (ensure to resolve all types correctly):\n' + JSON.stringify(schema, null, 2);
+        } else {
+            config.responseMimeType = 'application/json';
+            config.responseSchema = schema;
+        }
+
         const response = await ai.models.generateContent({
             model: modelName,
             contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: schema,
-                ...(useSearch ? { tools: [{ googleSearch: {} }] } : {})
-            },
+            config: config,
         });
         
         const text = response.text;
@@ -205,7 +211,8 @@ const callGemini = async <T>(modelName: string, prompt: string, schema: any, use
           throw new Error("Received an empty response from the AI model.");
         }
         
-        return JSON.parse(text);
+        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(cleanText);
     } catch (error) {
         console.error('Error calling Gemini API:', error);
         
