@@ -187,7 +187,7 @@ const competitiveAnalysisSchema = {
  * A generic function to call the Gemini API with a given prompt and response schema.
  * This centralizes the API call logic and error handling.
  */
-const callGemini = async <T>(modelName: string, prompt: string, schema: any, useSearch: boolean = false): Promise<T> => {
+const callGemini = async <T>(modelName: string, prompt: string, schema: any, useSearch: boolean = false, retries: number = 2): Promise<T> => {
     try {
         const ai = getAi();
         const config: any = {};
@@ -225,9 +225,10 @@ const callGemini = async <T>(modelName: string, prompt: string, schema: any, use
         
         return JSON.parse(cleanText);
     } catch (error) {
-        console.error('Error calling Gemini API:', error);
+        console.error(`Error calling Gemini API (retries left: ${retries}):`, error);
         
-        if (error instanceof Error) {
+        // Don't retry auth or quota errors
+        if (error instanceof Error && (error.message.includes('API key not valid') || error.message.includes('Quota exceeded') || error.message.includes('RESOURCE_EXHAUSTED') || error.message.includes('Request payload size exceeds the limit'))) {
             if (error.message.includes('API key not valid')) {
                 throw new Error('The provided API Key is invalid. Please ensure it is configured correctly.', { cause: error });
             }
@@ -239,8 +240,14 @@ const callGemini = async <T>(modelName: string, prompt: string, schema: any, use
             }
             throw error;
         }
+
+        if (retries > 0) {
+            console.log(`Retrying API call in 2 seconds...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return callGemini(modelName, prompt, schema, useSearch, retries - 1);
+        }
         
-        throw new Error('An unexpected error occurred while communicating with the AI model.', { cause: error });
+        throw new Error('An unexpected error occurred while communicating with the AI model. Failed after multiple retries.', { cause: error });
     }
 };
 

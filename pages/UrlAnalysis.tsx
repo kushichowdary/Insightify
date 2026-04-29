@@ -122,7 +122,7 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8 max-w-6xl mx-auto">
       <AnimatePresence>
-      {isLoading && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}><Loader message="Analyzing product URL... This may take a moment." /></motion.div>}
+      {isLoading && <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}><Loader message="Analyzing product URL... This may take a moment." /></motion.div>}
       </AnimatePresence>
       
       <motion.div variants={itemVariants} className="text-center">
@@ -153,6 +153,7 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
       <AnimatePresence>
       {results && (
         <motion.div 
+            key="results-container"
             initial={{ opacity: 0, y: 40 }} 
             animate={{ opacity: 1, y: 0, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }} 
             className="space-y-6 max-w-6xl mx-auto"

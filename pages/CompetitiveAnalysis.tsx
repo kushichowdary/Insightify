@@ -121,6 +121,7 @@ const CompetitiveAnalysis: React.FC<{ addAlert: (message: string, type: 'success
             <AnimatePresence>
             {results && (
                 <motion.div 
+                    key="results-container"
                     initial={{ opacity: 0, y: 40 }}
                     animate={{ opacity: 1, y: 0, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }}
                     className="space-y-6"
