@@ -257,12 +257,20 @@ const callGemini = async <T>(modelName: string, prompt: string, schema: any, use
     }
 };
 
+export const extractAsin = (url: string): string | null => {
+    const match = url.match(/(?:\/dp\/|\/gp\/product\/|\/exec\/obidos\/ASIN\/|dp\/|dp%2F|gp%2Fproduct%2F)([a-zA-Z0-9]{10})/);
+    return match ? match[1] : null;
+};
+
 export const analyzeProductUrl = async (url: string): Promise<ProductAnalysisResult> => {
-    const prompt = `Critically analyze the EXACT product from this URL: ${url}
+    const asin = extractAsin(url);
+    const asinDetail = asin ? `\n    AMAZON ASIN DETECTED: ${asin}. You MUST search for "Amazon ${asin}" to find the EXACT product name and details. DO NOT GUESS.` : '';
+    
+    const prompt = `Critically analyze the EXACT product from this URL: ${url} ${asinDetail}
     
     CRITICAL INSTRUCTION:
     1. If it's an e-commerce URL (like Amazon), extract the ASIN or unique product identifier.
-    2. Since you might not be able to directly scrape the URL, you MUST search Google using the exact product name, brand, model number, and ASIN to find real reviews for this SPECIFIC product.
+    2. Since you might not be able to directly scrape the URL, you MUST search Google securely using the exact product name, brand, model number, and ASIN to find real reviews for this SPECIFIC product.
     3. Do NOT provide information for a generic, random, or alternative product. You must find actual customer reviews, specifications, and sentiment for the EXACT item linked.
     4. DO NOT refuse to answer. Output a valid JSON matching the schema.
 
@@ -316,13 +324,19 @@ export const analyzeSingleReview = async (reviewText: string): Promise<SingleRev
 };
 
 export const compareProducts = async (url1: string, url2: string): Promise<CompetitiveAnalysisResult> => {
+    const asin1 = extractAsin(url1);
+    const asin2 = extractAsin(url2);
+    
+    const details1 = asin1 ? `[AMAZON ASIN DETECTED: ${asin1}. Search for "Amazon ${asin1}" for EXACT product]` : '';
+    const details2 = asin2 ? `[AMAZON ASIN DETECTED: ${asin2}. Search for "Amazon ${asin2}" for EXACT product]` : '';
+    
     const prompt = `Perform a comprehensive competitive analysis of the EXACT products from these two URLs:
-    URL 1: ${url1}
-    URL 2: ${url2}
+    URL 1: ${url1} ${details1}
+    URL 2: ${url2} ${details2}
     
     CRITICAL INSTRUCTION:
     1. If the URLs are e-commerce URLs (like Amazon), extract their ASINs or unique product identifiers.
-    2. Since you might not be able to directly scrape the URLs, you MUST search Google using the exact product names, brands, model numbers, and ASINs to find real reviews for these SPECIFIC products.
+    2. Since you might not be able to directly scrape the URLs, you MUST search Google securely using the exact product names, brands, model numbers, and ASINs to find real reviews for these SPECIFIC products.
     3. Do NOT provide information for generic, random, or alternative products. You must find actual customer reviews and feedback for the EXACT items linked.
     4. DO NOT refuse to answer. You MUST output a valid JSON matching the schema.
     
