@@ -47,7 +47,7 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
       // Trigger Notification
       addNotification({
         title: 'Analysis Complete',
-        message: `Successfully analyzed ${data.productName}. Sentiment: ${data.sentiment.positive}% Positive.`,
+        message: `Successfully analyzed ${data.productName || 'Product'}. Sentiment: ${data.sentiment?.positive || 0}% Positive.`,
         type: 'success'
       });
 
@@ -154,8 +154,9 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
       {results && (
         <motion.div 
             key="results-container"
-            initial={{ opacity: 0, y: 40 }} 
-            animate={{ opacity: 1, y: 0, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }} 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
             className="space-y-6 max-w-6xl mx-auto"
         >
           <motion.div variants={itemVariants}><Card>
@@ -172,7 +173,7 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
                       </div>
                       <div className="flex items-center gap-1">
                           <Icon name="comments"/>
-                          <span>{results.reviewCount.toLocaleString()} reviews</span>
+                          <span>{(results.reviewCount || 0).toLocaleString()} reviews</span>
                       </div>
                       {results.price && (
                         <div className="flex items-center gap-1 font-semibold text-light-text dark:text-white">
@@ -214,7 +215,7 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
                     <AspectChart aspects={results.aspects} />
                 </Card></motion.div>
 
-                <motion.div variants={itemVariants}><FakeReviewGauge probability={results.fakeReviewProbability} /></motion.div>
+                <motion.div variants={itemVariants}><FakeReviewGauge probability={results.fakeReviewProbability || 0} /></motion.div>
                 
                 {currentVerdictStyle && (
                     <motion.div variants={itemVariants}><Card className={`flex flex-col items-center justify-center text-center ${currentVerdictStyle.bg} border ${currentVerdictStyle.border} ${currentVerdictStyle.glow}`}>
@@ -256,13 +257,16 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
                 <motion.div variants={itemVariants} className="h-full"><Card className="h-full">
                     <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Sample Reviews</h3>
                     <div className="space-y-4 max-h-[48rem] overflow-y-auto pr-2">
-                    {((results.sampleReviews) || []).map((review, index) => (
-                        <div key={index} className={`p-4 rounded-lg border border-light-border dark:border-dark-border bg-light-background dark:bg-black/30 relative overflow-hidden ${sentimentStyles[review.sentiment].glow}`}>
-                            <Icon name={sentimentStyles[review.sentiment].icon} className={`absolute top-4 right-4 text-2xl opacity-10 ${sentimentStyles[review.sentiment].text}`} />
+                    {((results.sampleReviews) || []).map((review, index) => {
+                        const style = sentimentStyles[review.sentiment] || sentimentStyles['Neutral'];
+                        return (
+                        <div key={index} className={`p-4 rounded-lg border border-light-border dark:border-dark-border bg-light-background dark:bg-black/30 relative overflow-hidden ${style.glow}`}>
+                            <Icon name={style.icon} className={`absolute top-4 right-4 text-2xl opacity-10 ${style.text}`} />
                             <p className="italic text-light-text dark:text-dark-text pr-8">"{review.text}"</p>
-                            <p className={`text-right font-semibold mt-2 text-sm ${sentimentStyles[review.sentiment].text}`}>{review.sentiment}</p>
+                            <p className={`text-right font-semibold mt-2 text-sm ${style.text}`}>{review.sentiment}</p>
                         </div>
-                    ))}
+                        );
+                    })}
                     </div>
                 </Card></motion.div>
             </div>

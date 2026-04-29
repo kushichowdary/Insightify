@@ -32,14 +32,14 @@ const ReportDrawer: React.FC<{ selectedReport: AnalysisRecord | null, setSelecte
                         <div>
                             <h4 className="text-sm font-semibold mb-2">Sentiment Summary</h4>
                             <div className="flex h-4 rounded-full overflow-hidden mb-2">
-                                <div className="bg-green-500" style={{ width: `${ud.sentiment.positive}%` }}></div>
-                                <div className="bg-slate-400" style={{ width: `${ud.sentiment.neutral}%` }}></div>
-                                <div className="bg-red-500" style={{ width: `${ud.sentiment.negative}%` }}></div>
+                                <div className="bg-green-500" style={{ width: `${ud.sentiment?.positive || 0}%` }}></div>
+                                <div className="bg-slate-400" style={{ width: `${ud.sentiment?.neutral || 0}%` }}></div>
+                                <div className="bg-red-500" style={{ width: `${ud.sentiment?.negative || 0}%` }}></div>
                             </div>
                             <div className="flex justify-between text-[10px] uppercase font-bold text-light-text-secondary dark:text-dark-text-secondary">
-                                <span>Pos: {ud.sentiment.positive}%</span>
-                                <span>Neu: {ud.sentiment.neutral}%</span>
-                                <span>Neg: {ud.sentiment.negative}%</span>
+                                <span>Pos: {ud.sentiment?.positive || 0}%</span>
+                                <span>Neu: {ud.sentiment?.neutral || 0}%</span>
+                                <span>Neg: {ud.sentiment?.negative || 0}%</span>
                             </div>
                         </div>
                         <div>
@@ -57,27 +57,27 @@ const ReportDrawer: React.FC<{ selectedReport: AnalysisRecord | null, setSelecte
                     <div className="space-y-4">
                         <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg border border-light-border dark:border-dark-border text-center">
                             <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary uppercase">Total Reviews Processed</p>
-                            <p className="text-xl font-bold text-brand-primary">{fd.totalReviews.toLocaleString()}</p>
+                            <p className="text-xl font-bold text-brand-primary">{(fd.totalReviews || 0).toLocaleString()}</p>
                         </div>
                         <div>
                             <h4 className="text-sm font-semibold mb-2">Sentiment Distribution</h4>
                             <div className="flex h-4 rounded-full overflow-hidden mb-2">
-                                <div className="bg-green-500" style={{ width: `${fd.sentimentDistribution.positive}%` }}></div>
-                                <div className="bg-slate-400" style={{ width: `${fd.sentimentDistribution.neutral}%` }}></div>
-                                <div className="bg-red-500" style={{ width: `${fd.sentimentDistribution.negative}%` }}></div>
+                                <div className="bg-green-500" style={{ width: `${fd.sentimentDistribution?.positive || 0}%` }}></div>
+                                <div className="bg-slate-400" style={{ width: `${fd.sentimentDistribution?.neutral || 0}%` }}></div>
+                                <div className="bg-red-500" style={{ width: `${fd.sentimentDistribution?.negative || 0}%` }}></div>
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <h4 className="text-[10px] uppercase font-bold text-green-500 mb-1">Pos. Keywords</h4>
                                 <ul className="text-xs space-y-1">
-                                    {fd.topKeywords.positive.slice(0, 5).map((k, i) => <li key={i}>• {k}</li>)}
+                                    {(fd.topKeywords?.positive || []).slice(0, 5).map((k, i) => <li key={i}>• {k}</li>)}
                                 </ul>
                             </div>
                             <div>
                                 <h4 className="text-[10px] uppercase font-bold text-red-500 mb-1">Neg. Keywords</h4>
                                 <ul className="text-xs space-y-1">
-                                    {fd.topKeywords.negative.slice(0, 5).map((k, i) => <li key={i}>• {k}</li>)}
+                                    {(fd.topKeywords?.negative || []).slice(0, 5).map((k, i) => <li key={i}>• {k}</li>)}
                                 </ul>
                             </div>
                         </div>
@@ -90,12 +90,12 @@ const ReportDrawer: React.FC<{ selectedReport: AnalysisRecord | null, setSelecte
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="p-3 bg-blue-500/5 rounded-lg border border-blue-500/20">
-                                <p className="text-[10px] uppercase font-bold text-blue-500 mb-1">{cd.productOne.productName}</p>
-                                <p className="text-lg font-bold text-light-text dark:text-white">{cd.productOne.sentiment.positive}% Pos</p>
+                                <p className="text-[10px] uppercase font-bold text-blue-500 mb-1">{cd.productOne?.productName || 'Product 1'}</p>
+                                <p className="text-lg font-bold text-light-text dark:text-white">{cd.productOne?.sentiment?.positive || 0}% Pos</p>
                             </div>
                             <div className="p-3 bg-purple-500/5 rounded-lg border border-purple-500/20">
-                                <p className="text-[10px] uppercase font-bold text-purple-500 mb-1">{cd.productTwo.productName}</p>
-                                <p className="text-lg font-bold text-light-text dark:text-white">{cd.productTwo.sentiment.positive}% Pos</p>
+                                <p className="text-[10px] uppercase font-bold text-purple-500 mb-1">{cd.productTwo?.productName || 'Product 2'}</p>
+                                <p className="text-lg font-bold text-light-text dark:text-white">{cd.productTwo?.sentiment?.positive || 0}% Pos</p>
                             </div>
                         </div>
                         <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-light-border dark:border-dark-border">

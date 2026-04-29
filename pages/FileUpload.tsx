@@ -155,15 +155,16 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
       {results && (
         <motion.div 
             key="results-container"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
             className="space-y-6"
         >
             <motion.div variants={itemVariants}><Card>
                 <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Analysis Summary</h3>
                 <div className="flex flex-col md:flex-row items-center gap-8">
                     <div className="text-center md:w-1/3 shrink-0">
-                        <p className="text-4xl font-bold text-brand-primary" style={{ textShadow: '0 0 10px rgba(240, 56, 209, 0.5)' }}>{results.totalReviews.toLocaleString()}</p>
+                        <p className="text-4xl font-bold text-brand-primary" style={{ textShadow: '0 0 10px rgba(240, 56, 209, 0.5)' }}>{(results.totalReviews || 0).toLocaleString()}</p>
                         <p className="text-light-text-secondary dark:text-dark-text-secondary mt-2">Total Reviews Analyzed</p>
                     </div>
                     <div className="md:w-2/3 md:border-l md:border-light-border md:dark:border-dark-border md:pl-8">
@@ -199,7 +200,7 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
                 </Card></motion.div>
 
                 <motion.div variants={itemVariants} className="space-y-6">
-                    <FakeReviewGauge probability={results.fakeReviewProbability} />
+                    <FakeReviewGauge probability={results.fakeReviewProbability || 0} />
                     <Card className="border-l-4 border-amber-500">
                         <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text flex items-center gap-2">
                             <Icon name="cloud" /> Dataset Word Cloud

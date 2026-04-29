@@ -188,7 +188,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ addAlert }) => {
                 </h4>
                 <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={result.stores}>
+                        <BarChart data={result.stores || []}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
                             <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10}} />
@@ -197,7 +197,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ addAlert }) => {
                                 cursor={{fill: 'var(--color-primary)', opacity: 0.05}}
                             />
                             <Bar dataKey="price" radius={[4, 4, 0, 0]}>
-                                {result.stores.map((_, index) => (
+                                {(result.stores || []).map((_, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Bar>
@@ -213,7 +213,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ addAlert }) => {
                 </h4>
                 <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={result.priceHistory}>
+                        <AreaChart data={result.priceHistory || []}>
                             <defs>
                                 <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3}/>
@@ -239,7 +239,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ addAlert }) => {
                 </h4>
                 <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={result.sentimentBreakdown} layout="vertical">
+                        <BarChart data={result.sentimentBreakdown || []} layout="vertical">
                             <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.1} />
                             <XAxis type="number" hide />
                             <YAxis dataKey="platform" type="category" axisLine={false} tickLine={false} width={80} tick={{fontSize: 10}} />
@@ -258,7 +258,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ addAlert }) => {
                     <h4 className="text-xs font-bold uppercase tracking-widest">Pricing Matrix</h4>
                 </div>
                 <div className="max-h-[300px] overflow-y-auto divide-y divide-light-border dark:divide-dark-border">
-                    {result.stores.map((store, i) => (
+                    {(result.stores || []).map((store, i) => (
                         <motion.div 
                             key={i} 
                             initial={{ x: -20, opacity: 0 }}

@@ -54,10 +54,10 @@ const Analytics: React.FC<AnalyticsProps> = ({ addAlert }) => {
     records.forEach(r => {
         if (r.type === 'url') {
             const d = r.data as ProductAnalysisResult;
-            list.push({ id: r.id, productName: d.productName, reviewCount: d.reviewCount, sentiment: d.sentiment, overallRating: d.overallRating, date: r.date, type: 'URL', fakeReviewProbability: d.fakeReviewProbability });
+            list.push({ id: r.id, productName: d.productName || 'Unknown Product', reviewCount: d.reviewCount || 0, sentiment: d.sentiment || { positive: 0, negative: 0, neutral: 0 }, overallRating: d.overallRating || 0, date: r.date, type: 'URL', fakeReviewProbability: d.fakeReviewProbability || 0 });
         } else if (r.type === 'file') {
             const d = r.data as FileAnalysisResult;
-            list.push({ id: r.id, productName: r.title, reviewCount: d.totalReviews, sentiment: { positive: d.sentimentDistribution.positive, negative: d.sentimentDistribution.negative, neutral: d.sentimentDistribution.neutral }, overallRating: 'N/A', date: r.date, type: 'File', fakeReviewProbability: d.fakeReviewProbability });
+            list.push({ id: r.id, productName: r.title, reviewCount: d.totalReviews || 0, sentiment: d.sentimentDistribution ? { positive: d.sentimentDistribution.positive, negative: d.sentimentDistribution.negative, neutral: d.sentimentDistribution.neutral } : { positive: 0, negative: 0, neutral: 0 }, overallRating: 'N/A', date: r.date, type: 'File', fakeReviewProbability: d.fakeReviewProbability || 0 });
         }
     });
     return list;

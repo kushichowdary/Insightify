@@ -188,6 +188,7 @@ const competitiveAnalysisSchema = {
  * This centralizes the API call logic and error handling.
  */
 const callGemini = async <T>(modelName: string, prompt: string, schema: any, useSearch: boolean = false, retries: number = 2): Promise<T> => {
+    let responseText = '';
     try {
         const ai = getAi();
         const config: any = {};
@@ -207,8 +208,10 @@ const callGemini = async <T>(modelName: string, prompt: string, schema: any, use
         });
         
         const text = response.text;
+        responseText = text || '';
+        
         if (!text) {
-          throw new Error("Received an empty response from the AI model.");
+          throw new Error(`Received an empty response from the AI model. Candidate: ${JSON.stringify(response.candidates?.[0]) || 'undefined'}`);
         }
         
         let cleanText = text;
@@ -247,14 +250,24 @@ const callGemini = async <T>(modelName: string, prompt: string, schema: any, use
             return callGemini(modelName, prompt, schema, useSearch, retries - 1);
         }
         
-        throw new Error('An unexpected error occurred while communicating with the AI model. Failed after multiple retries.', { cause: error });
+        let modelText = responseText || '';
+        if (modelText.length > 100) modelText = modelText.substring(0, 100) + '...';
+        
+        throw new Error(`The AI model returned an invalid response (not JSON). Response: "${modelText}" | Error: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
     }
 };
 
 export const analyzeProductUrl = async (url: string): Promise<ProductAnalysisResult> => {
-    const prompt = `Critically analyze the product reviews from the URL: ${url}. 
+    const prompt = `Critically analyze the EXACT product from this URL: ${url}
+    
+    CRITICAL INSTRUCTION:
+    1. If it's an e-commerce URL (like Amazon), extract the ASIN or unique product identifier.
+    2. Since you might not be able to directly scrape the URL, you MUST search Google using the exact product name, brand, model number, and ASIN to find real reviews for this SPECIFIC product.
+    3. Do NOT provide information for a generic, random, or alternative product. You must find actual customer reviews, specifications, and sentiment for the EXACT item linked.
+    4. DO NOT refuse to answer. Output a valid JSON matching the schema.
+
     Provide:
-    1. Product name, overall rating out of 5, and total review count.
+    1. Exact Product name, overall rating out of 5, and total review count.
     2. Sentiment percentages (Positive, Negative, Neutral).
     3. Top 5 impactful positive and 5 negative keywords.
     4. 4 diverse sample reviews.
@@ -303,10 +316,17 @@ export const analyzeSingleReview = async (reviewText: string): Promise<SingleRev
 };
 
 export const compareProducts = async (url1: string, url2: string): Promise<CompetitiveAnalysisResult> => {
-    const prompt = `Perform a comprehensive competitive analysis of the products from two URLs.
+    const prompt = `Perform a comprehensive competitive analysis of the EXACT products from these two URLs:
     URL 1: ${url1}
     URL 2: ${url2}
-    For each product, provide a full analysis using the provided schema (product name, price, overall rating, review count, sentiment breakdown, top 5 keywords, and 4 sample reviews).
+    
+    CRITICAL INSTRUCTION:
+    1. If the URLs are e-commerce URLs (like Amazon), extract their ASINs or unique product identifiers.
+    2. Since you might not be able to directly scrape the URLs, you MUST search Google using the exact product names, brands, model numbers, and ASINs to find real reviews for these SPECIFIC products.
+    3. Do NOT provide information for generic, random, or alternative products. You must find actual customer reviews and feedback for the EXACT items linked.
+    4. DO NOT refuse to answer. You MUST output a valid JSON matching the schema.
+    
+    For each product, provide a full analysis using the provided schema (exact product name, price, overall rating, review count, sentiment breakdown, top 5 keywords, and 4 sample reviews).
     After analyzing both, provide a concise but insightful comparative summary (3-4 sentences) highlighting the key differentiators, target audiences, and relative strengths/weaknesses.
     Crucially, make a final recommendation on which product is best, and explain why (considering both price and review sentiment). Format this recommendation cleanly according to the schema.`;
     return callGemini('gemini-2.5-flash', prompt, competitiveAnalysisSchema, true);

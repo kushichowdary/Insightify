@@ -11,12 +11,13 @@ import { useUser } from '../contexts/UserContext';
 import AspectChart from '../components/AspectChart';
 
 const ProductResultCard: React.FC<{ result: ProductAnalysisResult & { price?: string } }> = ({ result }) => {
+    if (!result) return null;
     return (
         <div className="space-y-4">
             <h3 className="text-xl font-bold text-light-text dark:text-dark-text">{result.productName}</h3>
             <div className="flex items-center gap-4 text-light-text-secondary dark:text-dark-text-secondary">
-                <div className="flex items-center gap-1 text-yellow-500 dark:text-yellow-400"><Icon name="star" /> <span className="font-semibold text-light-text dark:text-dark-text">{result.overallRating}/5</span></div>
-                <div className="flex items-center gap-1"><Icon name="comments" /> {result.reviewCount.toLocaleString()} reviews</div>
+                <div className="flex items-center gap-1 text-yellow-500 dark:text-yellow-400"><Icon name="star" /> <span className="font-semibold text-light-text dark:text-dark-text">{result.overallRating || 0}/5</span></div>
+                <div className="flex items-center gap-1"><Icon name="comments" /> {(result.reviewCount || 0).toLocaleString()} reviews</div>
                 {result.price && <div className="flex items-center gap-1 font-semibold text-light-text dark:text-white"><Icon name="tag" /> {result.price}</div>}
             </div>
             <div className="flex justify-around text-center p-2 bg-slate-100 dark:bg-black/30 border border-light-border dark:border-dark-border rounded-lg">
@@ -72,14 +73,14 @@ const CompetitiveAnalysis: React.FC<{ addAlert: (message: string, type: 'success
               type: 'competitive',
               date: new Date().toISOString(),
               timestamp: Date.now(),
-              title: `Vs: ${data.productOne.productName} vs ${data.productTwo.productName}`,
+              title: `Vs: ${data.productOne?.productName || 'Product 1'} vs ${data.productTwo?.productName || 'Product 2'}`,
               data: data
             });
 
             // Trigger In-App Notification
             addNotification({
                 title: 'Market Battle Ready',
-                message: `Finished comparing ${data.productOne.productName} and ${data.productTwo.productName}. Check competitive insights!`,
+                message: `Finished comparing ${data.productOne?.productName || 'Product 1'} and ${data.productTwo?.productName || 'Product 2'}. Check competitive insights!`,
                 type: 'info'
             });
 
@@ -122,8 +123,9 @@ const CompetitiveAnalysis: React.FC<{ addAlert: (message: string, type: 'success
             {results && (
                 <motion.div 
                     key="results-container"
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }}
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
                     className="space-y-6"
                 >
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
