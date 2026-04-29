@@ -102,9 +102,9 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
   };
 
   const sentimentData = results ? [
-    { name: 'Positive', value: results.sentimentDistribution.positive, fill: '#10B981' },
-    { name: 'Negative', value: results.sentimentDistribution.negative, fill: '#EF4444' },
-    { name: 'Neutral', value: results.sentimentDistribution.neutral, fill: '#F59E0B' },
+    { name: 'Positive', value: results.sentimentDistribution?.positive || 0, fill: '#10B981' },
+    { name: 'Negative', value: results.sentimentDistribution?.negative || 0, fill: '#EF4444' },
+    { name: 'Neutral', value: results.sentimentDistribution?.neutral || 0, fill: '#F59E0B' },
   ] : [];
 
   const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.15 } } };
@@ -215,13 +215,13 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
                         <div>
                             <h4 className="font-semibold text-green-600 dark:text-green-400 mb-2">Positive</h4>
                             <div className="flex flex-wrap gap-2">
-                                {results.topKeywords.positive.map(kw => <span key={kw} className="bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-300 text-xs font-medium px-2.5 py-0.5 rounded-full">{kw}</span>)}
+                                {(results.topKeywords?.positive || []).map(kw => <span key={kw} className="bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-300 text-xs font-medium px-2.5 py-0.5 rounded-full">{kw}</span>)}
                             </div>
                         </div>
                         <div>
                             <h4 className="font-semibold text-red-600 dark:text-red-400 mb-2">Negative</h4>
                             <div className="flex flex-wrap gap-2">
-                                {results.topKeywords.negative.map(kw => <span key={kw} className="bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-300 text-xs font-medium px-2.5 py-0.5 rounded-full">{kw}</span>)}
+                                {(results.topKeywords?.negative || []).map(kw => <span key={kw} className="bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-300 text-xs font-medium px-2.5 py-0.5 rounded-full">{kw}</span>)}
                             </div>
                         </div>
                     </div>

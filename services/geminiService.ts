@@ -211,7 +211,18 @@ const callGemini = async <T>(modelName: string, prompt: string, schema: any, use
           throw new Error("Received an empty response from the AI model.");
         }
         
-        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        let cleanText = text;
+        const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (jsonMatch) {
+            cleanText = jsonMatch[1];
+        } else {
+            const firstBrace = text.indexOf('{');
+            const lastBrace = text.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace >= firstBrace) {
+                cleanText = text.slice(firstBrace, lastBrace + 1);
+            }
+        }
+        
         return JSON.parse(cleanText);
     } catch (error) {
         console.error('Error calling Gemini API:', error);

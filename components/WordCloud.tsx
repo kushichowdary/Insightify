@@ -6,7 +6,9 @@ interface WordCloudProps {
   words: WordCloudItem[];
 }
 
-const WordCloud: React.FC<WordCloudProps> = ({ words }) => {
+const WordCloud: React.FC<WordCloudProps> = ({ words = [] }) => {
+  if (!words || words.length === 0) return <div className="text-light-text-secondary dark:text-dark-text-secondary text-sm p-4">No word cloud data available.</div>;
+  
   // Normalize sizes
   const sMax = Math.max(...words.map(w => w.value));
   const sMin = Math.min(...words.map(w => w.value));

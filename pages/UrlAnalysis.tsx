@@ -98,9 +98,9 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
   }
 
   const sentimentData = results ? [
-    { name: 'Positive', value: results.sentiment.positive },
-    { name: 'Negative', value: results.sentiment.negative },
-    { name: 'Neutral', value: results.sentiment.neutral },
+    { name: 'Positive', value: results.sentiment?.positive || 0 },
+    { name: 'Negative', value: results.sentiment?.negative || 0 },
+    { name: 'Neutral', value: results.sentiment?.neutral || 0 },
   ] : [];
 
   const sentimentStyles: Record<Sentiment, { glow: string; icon: string; text: string; }> = {
@@ -238,13 +238,13 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
                         <div>
                             <h4 className="font-semibold text-green-500 dark:text-green-400 mb-2">Positive</h4>
                             <div className="flex flex-wrap gap-2">
-                                {results.topPositiveKeywords.map(kw => <span key={kw} className="border border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-300 text-sm font-medium px-3 py-1 rounded-full transition-all hover:bg-green-500/20 hover:shadow-glow-green">{kw}</span>)}
+                                {((results.topPositiveKeywords) || []).map(kw => <span key={kw} className="border border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-300 text-sm font-medium px-3 py-1 rounded-full transition-all hover:bg-green-500/20 hover:shadow-glow-green">{kw}</span>)}
                             </div>
                         </div>
                          <div>
                             <h4 className="font-semibold text-red-500 dark:text-red-400 mb-2">Negative</h4>
                             <div className="flex flex-wrap gap-2">
-                                {results.topNegativeKeywords.map(kw => <span key={kw} className="border border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-300 text-sm font-medium px-3 py-1 rounded-full transition-all hover:bg-red-500/20 hover:shadow-glow-red">{kw}</span>)}
+                                {((results.topNegativeKeywords) || []).map(kw => <span key={kw} className="border border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-300 text-sm font-medium px-3 py-1 rounded-full transition-all hover:bg-red-500/20 hover:shadow-glow-red">{kw}</span>)}
                             </div>
                         </div>
                     </div>
@@ -255,7 +255,7 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
                 <motion.div variants={itemVariants} className="h-full"><Card className="h-full">
                     <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Sample Reviews</h3>
                     <div className="space-y-4 max-h-[48rem] overflow-y-auto pr-2">
-                    {results.sampleReviews.map((review, index) => (
+                    {((results.sampleReviews) || []).map((review, index) => (
                         <div key={index} className={`p-4 rounded-lg border border-light-border dark:border-dark-border bg-light-background dark:bg-black/30 relative overflow-hidden ${sentimentStyles[review.sentiment].glow}`}>
                             <Icon name={sentimentStyles[review.sentiment].icon} className={`absolute top-4 right-4 text-2xl opacity-10 ${sentimentStyles[review.sentiment].text}`} />
                             <p className="italic text-light-text dark:text-dark-text pr-8">"{review.text}"</p>

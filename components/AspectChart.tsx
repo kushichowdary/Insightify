@@ -7,7 +7,9 @@ interface AspectChartProps {
   aspects: AspectSentiment[];
 }
 
-const AspectChart: React.FC<AspectChartProps> = ({ aspects }) => {
+const AspectChart: React.FC<AspectChartProps> = ({ aspects = [] }) => {
+  if (!aspects || aspects.length === 0) return <div className="text-light-text-secondary dark:text-dark-text-secondary text-sm p-4">No aspect data available.</div>;
+
   return (
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">

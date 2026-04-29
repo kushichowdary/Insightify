@@ -20,20 +20,20 @@ const ProductResultCard: React.FC<{ result: ProductAnalysisResult & { price?: st
                 {result.price && <div className="flex items-center gap-1 font-semibold text-light-text dark:text-white"><Icon name="tag" /> {result.price}</div>}
             </div>
             <div className="flex justify-around text-center p-2 bg-slate-100 dark:bg-black/30 border border-light-border dark:border-dark-border rounded-lg">
-                <div><p className="font-bold text-green-600 dark:text-green-400">{result.sentiment.positive}%</p><p className="text-xs text-light-text-secondary dark:text-dark-text-secondary">Positive</p></div>
-                <div><p className="font-bold text-red-600 dark:text-red-400">{result.sentiment.negative}%</p><p className="text-xs text-light-text-secondary dark:text-dark-text-secondary">Negative</p></div>
-                <div><p className="font-bold text-yellow-600 dark:text-yellow-400">{result.sentiment.neutral}%</p><p className="text-xs text-light-text-secondary dark:text-dark-text-secondary">Neutral</p></div>
+                <div><p className="font-bold text-green-600 dark:text-green-400">{result.sentiment?.positive || 0}%</p><p className="text-xs text-light-text-secondary dark:text-dark-text-secondary">Positive</p></div>
+                <div><p className="font-bold text-red-600 dark:text-red-400">{result.sentiment?.negative || 0}%</p><p className="text-xs text-light-text-secondary dark:text-dark-text-secondary">Negative</p></div>
+                <div><p className="font-bold text-yellow-600 dark:text-yellow-400">{result.sentiment?.neutral || 0}%</p><p className="text-xs text-light-text-secondary dark:text-dark-text-secondary">Neutral</p></div>
             </div>
              <div>
                 <h4 className="font-semibold text-green-600 dark:text-green-400 mb-2 text-sm">Top Positive Keywords</h4>
                 <div className="flex flex-wrap gap-2">
-                    {result.topPositiveKeywords.slice(0, 3).map(kw => <span key={kw} className="bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-300 text-xs font-medium px-2.5 py-0.5 rounded-full">{kw}</span>)}
+                    {(result.topPositiveKeywords || []).slice(0, 3).map(kw => <span key={kw} className="bg-green-100 dark:bg-green-500/20 text-green-800 dark:text-green-300 text-xs font-medium px-2.5 py-0.5 rounded-full">{kw}</span>)}
                 </div>
             </div>
              <div>
                 <h4 className="font-semibold text-red-600 dark:text-red-400 mb-2 text-sm">Top Negative Keywords</h4>
                 <div className="flex flex-wrap gap-2">
-                    {result.topNegativeKeywords.slice(0, 3).map(kw => <span key={kw} className="bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-300 text-xs font-medium px-2.5 py-0.5 rounded-full">{kw}</span>)}
+                    {(result.topNegativeKeywords || []).slice(0, 3).map(kw => <span key={kw} className="bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-300 text-xs font-medium px-2.5 py-0.5 rounded-full">{kw}</span>)}
                 </div>
             </div>
             {result.aspects && result.aspects.length > 0 && (
