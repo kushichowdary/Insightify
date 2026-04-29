@@ -237,7 +237,7 @@ export const analyzeProductUrl = async (url: string): Promise<ProductAnalysisRes
     6. Word Cloud data: Provide at least 15 important words/phrases with frequency values.
     7. Fake Review Detection: Analyze patterns in language and metadata to determine the probability (0-100) that some reviews are fabricated or incentivized.
     8. A concise summary and clear verdict.`;
-    return callGemini('gemini-3-flash-preview', prompt, productAnalysisSchema, true);
+    return callGemini('gemini-1.5-flash', prompt, productAnalysisSchema, true);
 };
 
 export const analyzeReviewFile = async (fileContent: string): Promise<FileAnalysisResult> => {
@@ -251,7 +251,7 @@ export const analyzeReviewFile = async (fileContent: string): Promise<FileAnalys
     6. Word cloud data (at least 15 items).
     7. Fake review probability for the overall dataset.
     Here is the review data: \n\n${fileContent}`;
-    return callGemini('gemini-3-flash-preview', prompt, fileAnalysisSchema);
+    return callGemini('gemini-1.5-flash', prompt, fileAnalysisSchema);
 };
 
 export const performGlobalSearch = async (query: string): Promise<GlobalSearchResult> => {
@@ -269,12 +269,12 @@ export const performGlobalSearch = async (query: string): Promise<GlobalSearchRe
     8. Indian market-specific details like upcoming sale eligibility or bank card offers (HDFC, ICICI, etc).
     
     Return the data in the specified JSON structure. Ensure pricing reflects actual current Indian market trends.`;
-    return callGemini('gemini-3-flash-preview', prompt, globalSearchSchema, true);
+    return callGemini('gemini-1.5-flash', prompt, globalSearchSchema, true);
 };
 
 export const analyzeSingleReview = async (reviewText: string): Promise<SingleReviewResult> => {
     const prompt = `Analyze the sentiment of this review: "${reviewText}". Classify it as 'Positive', 'Negative', or 'Neutral'. Provide a confidence score from 0 to 1. Give a brief, one-sentence explanation for your classification.`;
-    return callGemini('gemini-3-flash-preview', prompt, singleReviewSchema);
+    return callGemini('gemini-1.5-flash', prompt, singleReviewSchema);
 };
 
 export const compareProducts = async (url1: string, url2: string): Promise<CompetitiveAnalysisResult> => {
@@ -284,7 +284,7 @@ export const compareProducts = async (url1: string, url2: string): Promise<Compe
     For each product, provide a full analysis using the provided schema (product name, price, overall rating, review count, sentiment breakdown, top 5 keywords, and 4 sample reviews).
     After analyzing both, provide a concise but insightful comparative summary (3-4 sentences) highlighting the key differentiators, target audiences, and relative strengths/weaknesses.
     Crucially, make a final recommendation on which product is best, and explain why (considering both price and review sentiment). Format this recommendation cleanly according to the schema.`;
-    return callGemini('gemini-3-flash-preview', prompt, competitiveAnalysisSchema, true);
+    return callGemini('gemini-1.5-flash', prompt, competitiveAnalysisSchema, true);
 }
 
 // Mocked service for sentiment trends, remains unchanged
