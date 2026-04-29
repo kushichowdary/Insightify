@@ -28,6 +28,8 @@ const getFirebaseErrorMessage = (error: any): string => {
       return 'Please enter a valid email address.';
     case 'auth/popup-closed-by-user':
       return 'Login canceled.';
+    case 'auth/operation-not-allowed':
+      return 'This login method is disabled. Please enable Email/Password and Google sign-in in your Firebase Console (Authentication -> Sign-in method).';
     default:
       return error?.message || 'An unexpected error occurred. Please try again.';
   }

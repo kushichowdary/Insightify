@@ -118,7 +118,7 @@ const Settings: React.FC<SettingsProps> = ({ addAlert }) => {
                 <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Global Notifications</h3>
                  <div className="space-y-4 max-w-sm">
                     <Toggle 
-                      label="In-App Intelligence Alerts" 
+                      label="Alerts" 
                       enabled={notificationsEnabled} 
                       onToggle={() => setNotificationsEnabled(!notificationsEnabled)} 
                     />
