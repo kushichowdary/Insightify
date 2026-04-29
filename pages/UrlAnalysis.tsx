@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 import Card from '../components/Card';
 import Icon from '../components/Icon';
@@ -115,11 +116,16 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
   }
   const currentVerdictStyle = results ? verdictStyles[results.verdict] : null;
 
+  const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.15 } } };
+  const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } } };
+
   return (
-    <div className="space-y-8 animate-fade-in-up max-w-6xl mx-auto">
-      {isLoading && <Loader message="Analyzing product URL... This may take a moment." />}
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8 max-w-6xl mx-auto">
+      <AnimatePresence>
+      {isLoading && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}><Loader message="Analyzing product URL... This may take a moment." /></motion.div>}
+      </AnimatePresence>
       
-      <div className="text-center">
+      <motion.div variants={itemVariants} className="text-center">
         <div className="inline-block p-4 bg-light-surface dark:bg-dark-surface rounded-full border border-light-border dark:border-dark-border mb-4 shadow-lg">
           <Icon name="link" className="text-3xl text-brand-primary" />
         </div>
@@ -142,11 +148,16 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
             <Icon name="search" /> Analyze
           </button>
         </div>
-      </div>
+      </motion.div>
 
+      <AnimatePresence>
       {results && (
-        <div className="space-y-6 max-w-6xl mx-auto">
-          <Card>
+        <motion.div 
+            initial={{ opacity: 0, y: 40 }} 
+            animate={{ opacity: 1, y: 0, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }} 
+            className="space-y-6 max-w-6xl mx-auto"
+        >
+          <motion.div variants={itemVariants}><Card>
             <div className="flex flex-col sm:flex-row items-start gap-6">
               <div className="w-24 h-24 bg-light-background dark:bg-black/30 border border-light-border dark:border-dark-border rounded-md flex items-center justify-center text-light-text-secondary dark:text-dark-text-secondary text-4xl flex-shrink-0">
                   <Icon name="image"/>
@@ -175,11 +186,11 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
                 <Icon name="download"/> Export CSV
               </button>
             </div>
-          </Card>
+          </Card></motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div className="lg:col-span-2 space-y-6">
-                <Card className="flex flex-col items-center justify-center border-l-4 border-brand-primary">
+                <motion.div variants={itemVariants}><Card className="flex flex-col items-center justify-center border-l-4 border-brand-primary">
                     <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text flex items-center gap-2">
                         <Icon name="chart-pie" /> Sentiment Overview
                     </h3>
@@ -193,33 +204,33 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
-                </Card>
+                </Card></motion.div>
 
-                <Card className="border-l-4 border-indigo-500">
+                <motion.div variants={itemVariants}><Card className="border-l-4 border-indigo-500">
                     <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text flex items-center gap-2">
                         <Icon name="layer-group" /> Aspect Sentiment
                     </h3>
                     <AspectChart aspects={results.aspects} />
-                </Card>
+                </Card></motion.div>
 
-                <FakeReviewGauge probability={results.fakeReviewProbability} />
+                <motion.div variants={itemVariants}><FakeReviewGauge probability={results.fakeReviewProbability} /></motion.div>
                 
                 {currentVerdictStyle && (
-                    <Card className={`flex flex-col items-center justify-center text-center ${currentVerdictStyle.bg} border ${currentVerdictStyle.border} ${currentVerdictStyle.glow}`}>
+                    <motion.div variants={itemVariants}><Card className={`flex flex-col items-center justify-center text-center ${currentVerdictStyle.bg} border ${currentVerdictStyle.border} ${currentVerdictStyle.glow}`}>
                         <h3 className="text-lg font-semibold mb-2 text-light-text dark:text-dark-text">Our Verdict</h3>
                         <Icon name={currentVerdictStyle.icon} className={`text-5xl mb-3 ${currentVerdictStyle.text}`} />
                         <p className={`text-xl font-bold ${currentVerdictStyle.text}`}>{results.verdict}</p>
-                    </Card>
+                    </Card></motion.div>
                 )}
 
-                <Card className="border-l-4 border-amber-500">
+                <motion.div variants={itemVariants}><Card className="border-l-4 border-amber-500">
                     <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text flex items-center gap-2">
                         <Icon name="cloud" /> Analysis Word Cloud
                     </h3>
                     <WordCloud words={results.wordCloud} />
-                </Card>
+                </Card></motion.div>
 
-                <Card className="border-l-4 border-emerald-500">
+                <motion.div variants={itemVariants}><Card className="border-l-4 border-emerald-500">
                     <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text flex items-center gap-2">
                         <Icon name="key" /> Top Keywords
                     </h3>
@@ -237,11 +248,11 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
                             </div>
                         </div>
                     </div>
-                </Card>
+                </Card></motion.div>
             </div>
             
             <div className="lg:col-span-3">
-                <Card>
+                <motion.div variants={itemVariants} className="h-full"><Card className="h-full">
                     <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Sample Reviews</h3>
                     <div className="space-y-4 max-h-[48rem] overflow-y-auto pr-2">
                     {results.sampleReviews.map((review, index) => (
@@ -252,12 +263,13 @@ const UrlAnalysis: React.FC<{ addAlert: (message: string, type: 'success' | 'err
                         </div>
                     ))}
                     </div>
-                </Card>
+                </Card></motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

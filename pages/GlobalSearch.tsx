@@ -81,7 +81,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ addAlert }) => {
             </div>
             <h3 className="text-2xl font-black mb-2 flex items-center gap-2">
                 <Icon name="search-location" className="text-brand-primary" />
-                Bharat Intelligence Engine
+                Intelligence Engine
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-8 italic">
               Aggregating pricing, sentiment, and local availability across Indian retail platforms.
@@ -129,22 +129,7 @@ const GlobalSearch: React.FC<GlobalSearchProps> = ({ addAlert }) => {
         >
           {/* Header Row */}
           <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <Card className="lg:col-span-3 border-l-4 border-brand-primary bg-gradient-to-r from-brand-primary/[0.03] to-transparent">
-                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                    <div>
-                        <h2 className="text-4xl font-black text-light-text dark:text-white tracking-tight">{result.productName}</h2>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                             <span className="px-2 py-1 bg-green-500/10 text-green-500 text-[10px] font-bold rounded uppercase border border-green-500/20">Indian Market</span>
-                             <span className="px-2 py-1 bg-blue-500/10 text-blue-500 text-[10px] font-bold rounded uppercase border border-blue-500/20">Verified Info</span>
-                        </div>
-                    </div>
-                    <div className="text-left md:text-right">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Best Price Points</p>
-                        <p className="text-4xl font-black text-brand-primary animate-pulse">{result.bestPrice}</p>
-                    </div>
-                </div>
-            </Card>
-            <Card className="flex flex-col items-center justify-center text-center border-b-4 border-amber-500">
+            <Card className="lg:col-span-4 flex flex-col items-center justify-center text-center border-b-4 border-amber-500">
                 <h4 className="text-[10px] font-black text-slate-400 uppercase mb-2">Overall Score</h4>
                 <div className="relative w-24 h-24 flex items-center justify-center">
                     <svg className="w-full h-full transform -rotate-90">

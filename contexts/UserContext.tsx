@@ -5,6 +5,53 @@ import { doc, onSnapshot, setDoc, updateDoc, collection, query, orderBy, limit, 
 import { auth, db } from '../firebase';
 import { UserProfile, Notification, Theme, AccentColor } from '../types';
 
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
 interface UserContextType {
   profile: UserProfile | null;
   notifications: Notification[];
@@ -47,8 +94,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
 
     // Real-time Profile Listener
+    const profilePath = `users/${user.uid}`;
     const profileRef = doc(db, 'users', user.uid);
-    const profileUnsubscribe = onSnapshot(profileRef, (snap) => {
+    const profileUnsubscribe = onSnapshot(profileRef, async (snap) => {
       if (snap.exists()) {
         setProfile(snap.data() as UserProfile);
       } else {
@@ -63,15 +111,20 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           notificationsEnabled: true,
           createdAt: Date.now()
         };
-        setDoc(profileRef, initialProfile);
+        try {
+          await setDoc(profileRef, initialProfile);
+        } catch (error) {
+          handleFirestoreError(error, OperationType.WRITE, profilePath);
+        }
       }
       setLoading(false);
     }, (error) => {
-      console.error("Profile listener error:", error);
+      handleFirestoreError(error, OperationType.GET, profilePath);
       setLoading(false);
     });
 
     // Real-time Notifications Listener
+    const notifPath = `users/${user.uid}/notifications`;
     const notifQuery = query(
       collection(db, 'users', user.uid, 'notifications'),
       orderBy('timestamp', 'desc'),
@@ -80,6 +133,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const notificationsUnsubscribe = onSnapshot(notifQuery, (snapshot) => {
       const items = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as Notification));
       setNotifications(items);
+    }, (error) => {
+       handleFirestoreError(error, OperationType.LIST, notifPath);
     });
 
     return () => {
@@ -90,7 +145,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (data: Partial<UserProfile>) => {
     if (!user) return;
-    await updateDoc(doc(db, 'users', user.uid), data);
+    const path = `users/${user.uid}`;
+    try {
+      await updateDoc(doc(db, 'users', user.uid), data);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
   };
 
   const updateTheme = async (theme: Theme) => {
@@ -99,34 +159,54 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateAccent = async (accentColor: AccentColor | null) => {
     if (!user) return;
-    if (accentColor === null) {
-      await updateDoc(doc(db, 'users', user.uid), { accentColor: deleteField() });
-    } else {
-      await updateProfile({ accentColor });
+    const path = `users/${user.uid}`;
+    try {
+      if (accentColor === null) {
+        await updateDoc(doc(db, 'users', user.uid), { accentColor: deleteField() });
+      } else {
+        await updateProfile({ accentColor });
+      }
+    } catch (error) {
+       handleFirestoreError(error, OperationType.UPDATE, path);
     }
   };
 
   const markAsRead = async (id: string) => {
     if (!user) return;
-    await updateDoc(doc(db, 'users', user.uid, 'notifications', id), { read: true });
+    const path = `users/${user.uid}/notifications/${id}`;
+    try {
+      await updateDoc(doc(db, 'users', user.uid, 'notifications', id), { read: true });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
   };
 
   const clearNotifications = async () => {
     if (!user) return;
-    const batch = writeBatch(db);
-    notifications.forEach(n => {
-      batch.delete(doc(db, 'users', user.uid, 'notifications', n.id));
-    });
-    await batch.commit();
+    const path = `users/${user.uid}/notifications`;
+    try {
+      const batch = writeBatch(db);
+      notifications.forEach(n => {
+        batch.delete(doc(db, 'users', user.uid, 'notifications', n.id));
+      });
+      await batch.commit();
+    } catch (error) {
+       handleFirestoreError(error, OperationType.DELETE, path);
+    }
   };
 
   const addNotification = async (n: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     if (!user) return;
-    await addDoc(collection(db, 'users', user.uid, 'notifications'), {
-      ...n,
-      timestamp: Date.now(),
-      read: false
-    });
+    const path = `users/${user.uid}/notifications`;
+    try {
+      await addDoc(collection(db, 'users', user.uid, 'notifications'), {
+        ...n,
+        timestamp: Date.now(),
+        read: false
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, path);
+    }
   };
 
   return (
@@ -138,3 +218,4 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </UserContext.Provider>
   );
 };
+

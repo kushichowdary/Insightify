@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import Card from '../components/Card';
 import Icon from '../components/Icon';
 import Toggle from '../components/Toggle';
@@ -12,6 +13,16 @@ interface SettingsProps {
 
 const Settings: React.FC<SettingsProps> = ({ addAlert }) => {
     const { profile, updateProfile } = useUser();
+    
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
+    };
+    
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } }
+    };
     const commonInputClasses = "mt-1 w-full p-2.5 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:outline-none bg-light-background dark:bg-black/20 text-light-text dark:text-white placeholder-gray-500";
     const commonLabelClasses = "text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary";
     
@@ -57,7 +68,13 @@ const Settings: React.FC<SettingsProps> = ({ addAlert }) => {
     }
 
     return (
-        <div className="space-y-8 max-w-4xl mx-auto">
+        <motion.div 
+            variants={containerVariants} 
+            initial="hidden" 
+            animate="visible" 
+            className="space-y-8 max-w-4xl mx-auto"
+        >
+            <motion.div variants={itemVariants}>
             <Card>
                 <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Profile Information</h3>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -82,8 +99,10 @@ const Settings: React.FC<SettingsProps> = ({ addAlert }) => {
                     </div>
                 </form>
             </Card>
+            </motion.div>
 
-             <Card>
+            <motion.div variants={itemVariants}>
+            <Card>
                 <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Security</h3>
                 <div className="space-y-4">
                     <p className="text-sm text-gray-500">Need to change your password? We will send a secure reset link to your email.</p>
@@ -92,7 +111,9 @@ const Settings: React.FC<SettingsProps> = ({ addAlert }) => {
                     </button>
                 </div>
             </Card>
+            </motion.div>
             
+            <motion.div variants={itemVariants}>
             <Card>
                 <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Global Notifications</h3>
                  <div className="space-y-4 max-w-sm">
@@ -103,7 +124,8 @@ const Settings: React.FC<SettingsProps> = ({ addAlert }) => {
                     />
                 </div>
             </Card>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 

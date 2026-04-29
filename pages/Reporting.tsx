@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import Card from '../components/Card';
 import Icon from '../components/Icon';
 import { useData } from '../contexts/DataContext';
@@ -115,8 +116,19 @@ const ReportDrawer: React.FC<{ selectedReport: AnalysisRecord | null, setSelecte
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-            <Card className="w-full max-w-lg relative animate-fade-in-up border-brand-primary/20 shadow-glow-primary/20">
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        >
+            <motion.div
+                initial={{ scale: 0.9, y: 20, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 0.9, y: 20, opacity: 0 }}
+                className="w-full max-w-lg relative"
+            >
+            <Card className="w-full h-full border-brand-primary/20 shadow-glow-primary/20">
                 <button 
                     onClick={() => setSelectedReport(null)}
                     className="absolute right-4 top-4 text-light-text-secondary hover:text-brand-primary p-2 transition-colors"
@@ -152,7 +164,8 @@ const ReportDrawer: React.FC<{ selectedReport: AnalysisRecord | null, setSelecte
                     </button>
                 </div>
             </Card>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 
@@ -177,11 +190,16 @@ const Reporting: React.FC<ReportingProps> = ({ addAlert }) => {
         addAlert("Report downloaded successfully!", "success");
     };
 
+    const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } };
+    const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } } };
+
     return (
-        <div className="space-y-6 animate-fade-in-up pb-10 max-w-6xl mx-auto">
-            <ReportDrawer selectedReport={selectedReport} setSelectedReport={setSelectedReport} downloadJSON={downloadJSON} />
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6 pb-10 max-w-6xl mx-auto">
+            <AnimatePresence>
+                {selectedReport && <ReportDrawer selectedReport={selectedReport} setSelectedReport={setSelectedReport} downloadJSON={downloadJSON} />}
+            </AnimatePresence>
             
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-2">
+            <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-2">
                 <div>
                    <h2 className="text-2xl font-bold tracking-tight text-light-text dark:text-white flex items-center gap-3">
                        <Icon name="file-invoice" className="text-brand-primary" />
@@ -201,11 +219,13 @@ const Reporting: React.FC<ReportingProps> = ({ addAlert }) => {
                         className="w-full pl-11 pr-4 py-3 bg-light-surface dark:bg-black/40 border border-light-border dark:border-dark-border rounded-xl focus:ring-2 focus:ring-brand-primary focus:outline-none text-light-text dark:text-white placeholder-gray-500 transition-all duration-300"
                     />
                 </div>
-            </div>
+            </motion.div>
 
             <div className="grid grid-cols-1 gap-4">
+                <AnimatePresence mode="popLayout">
                 {filteredRecords.length > 0 ? filteredRecords.map((report, idx) => (
-                    <Card key={report.id} className="hover:border-brand-primary/30 transition-all duration-500 group relative overflow-hidden bg-gradient-to-r from-transparent to-transparent hover:to-brand-primary/[0.02]">
+                    <motion.div layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }} key={report.id}>
+                    <Card className="hover:border-brand-primary/30 transition-all duration-500 group relative overflow-hidden bg-gradient-to-r from-transparent to-transparent hover:to-brand-primary/[0.02]">
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div className="flex items-center gap-4 flex-1">
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-all duration-500 ${
@@ -265,7 +285,9 @@ const Reporting: React.FC<ReportingProps> = ({ addAlert }) => {
                              <div className="absolute top-0 right-0 h-full w-1.5 bg-brand-primary shadow-glow-primary"></div>
                         )}
                     </Card>
+                    </motion.div>
                 )) : (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                     <Card className="flex flex-col items-center justify-center p-20 text-center border-dashed">
                         <Icon name="folder-open" className="text-6xl text-brand-primary/20 mb-4" />
                         <h4 className="text-lg font-bold text-light-text dark:text-white">Empty Signal History</h4>
@@ -273,9 +295,11 @@ const Reporting: React.FC<ReportingProps> = ({ addAlert }) => {
                             No analysis reports synchronized. Initiate a scan in URL or File analysis to generate reports.
                         </p>
                     </Card>
+                    </motion.div>
                 )}
+                </AnimatePresence>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

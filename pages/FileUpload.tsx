@@ -1,5 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Card from '../components/Card';
 import Icon from '../components/Icon';
@@ -106,9 +107,15 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
     { name: 'Neutral', value: results.sentimentDistribution.neutral, fill: '#F59E0B' },
   ] : [];
 
+  const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.15 } } };
+  const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } } };
+
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      {isLoading && <Loader message="Processing file... This might take a while for large files." />}
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6 max-w-6xl mx-auto">
+      <AnimatePresence>
+        {isLoading && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}><Loader message="Processing file... This might take a while for large files." /></motion.div>}
+      </AnimatePresence>
+      <motion.div variants={itemVariants}>
       <Card>
         <h3 className="text-lg font-semibold mb-2 text-light-text dark:text-dark-text">Upload Review Dataset</h3>
         <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">Upload a CSV, Excel, or TXT file containing product reviews for bulk analysis.</p>
@@ -142,10 +149,16 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
             </button>
         )}
       </Card>
+      </motion.div>
       
+      <AnimatePresence>
       {results && (
-        <div className="animate-fade-in-up space-y-6">
-            <Card>
+        <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }}
+            className="space-y-6"
+        >
+            <motion.div variants={itemVariants}><Card>
                 <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Analysis Summary</h3>
                 <div className="flex flex-col md:flex-row items-center gap-8">
                     <div className="text-center md:w-1/3 shrink-0">
@@ -157,10 +170,10 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
                         <p className="text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">{results.datasetSummary}</p>
                     </div>
                 </div>
-            </Card>
+            </Card></motion.div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="border-l-4 border-brand-primary">
+                <motion.div variants={itemVariants}><Card className="border-l-4 border-brand-primary">
                     <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text flex items-center gap-2">
                         <Icon name="chart-bar" /> Sentiment Distribution
                     </h3>
@@ -175,16 +188,16 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
-                </Card>
+                </Card></motion.div>
 
-                <Card className="border-l-4 border-indigo-500">
+                <motion.div variants={itemVariants}><Card className="border-l-4 border-indigo-500">
                     <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text flex items-center gap-2">
                         <Icon name="layer-group" /> Aggregate Aspects
                     </h3>
                     <AspectChart aspects={results.aspects} />
-                </Card>
+                </Card></motion.div>
 
-                <div className="space-y-6">
+                <motion.div variants={itemVariants} className="space-y-6">
                     <FakeReviewGauge probability={results.fakeReviewProbability} />
                     <Card className="border-l-4 border-amber-500">
                         <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text flex items-center gap-2">
@@ -192,9 +205,9 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
                         </h3>
                         <WordCloud words={results.wordCloud} />
                     </Card>
-                </div>
+                </motion.div>
 
-                <Card className="border-l-4 border-emerald-500">
+                <motion.div variants={itemVariants}><Card className="border-l-4 border-emerald-500">
                     <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text flex items-center gap-2">
                         <Icon name="key" /> Key Terms
                     </h3>
@@ -212,11 +225,12 @@ const FileUpload: React.FC<{ addAlert: (message: string, type: 'success' | 'erro
                             </div>
                         </div>
                     </div>
-                </Card>
+                </Card></motion.div>
             </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

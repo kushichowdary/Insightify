@@ -13,7 +13,8 @@ interface LoginProps {
 }
 
 // Firebase error handler
-const getFirebaseErrorMessage = (errorCode: string): string => {
+const getFirebaseErrorMessage = (error: any): string => {
+  const errorCode = error?.code || 'unknown';
   switch (errorCode) {
     case 'auth/user-not-found':
     case 'auth/wrong-password':
@@ -25,8 +26,10 @@ const getFirebaseErrorMessage = (errorCode: string): string => {
       return 'Password should be at least 6 characters.';
     case 'auth/invalid-email':
       return 'Please enter a valid email address.';
+    case 'auth/popup-closed-by-user':
+      return 'Login canceled.';
     default:
-      return 'An unexpected error occurred. Please try again.';
+      return error?.message || 'An unexpected error occurred. Please try again.';
   }
 };
 
@@ -141,9 +144,9 @@ const Login: React.FC<LoginProps> = ({ addAlert, accentColor, theme }) => {
           await updateProfile(userCredential.user, { displayName: fullName });
         }
       }
+      // If success, component unmounts; no need to setIsLoading(false)
     } catch (error: any) {
-      addAlert(getFirebaseErrorMessage(error.code), 'error');
-    } finally {
+      addAlert(getFirebaseErrorMessage(error), 'error');
       setIsLoading(false);
     }
   };
@@ -154,9 +157,9 @@ const Login: React.FC<LoginProps> = ({ addAlert, accentColor, theme }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
+      // If success, component unmounts; no need to setIsLoading(false)
     } catch (error: any) {
-      addAlert(getFirebaseErrorMessage(error.code), 'error');
-    } finally {
+      addAlert(getFirebaseErrorMessage(error), 'error');
       setIsLoading(false);
     }
   };

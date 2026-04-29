@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import Card from '../components/Card';
 import Icon from '../components/Icon';
@@ -109,9 +110,12 @@ const Analytics: React.FC<AnalyticsProps> = ({ addAlert }) => {
     }));
   };
 
+  const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } };
+  const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } } };
+
   return (
-    <div className="space-y-6 animate-fade-in-up pb-10 max-w-6xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6 pb-10 max-w-6xl mx-auto">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="flex items-center gap-4 border-l-4 border-blue-500 shadow-glow-primary/5">
            <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 border border-blue-500/20">
              <Icon name="search" className="text-xl" />
@@ -139,9 +143,9 @@ const Analytics: React.FC<AnalyticsProps> = ({ addAlert }) => {
              <p className="text-2xl font-bold text-light-text dark:text-dark-text tracking-tight">{stats.averageSentiment}% Positive</p>
            </div>
         </Card>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
             <h3 className="text-lg font-semibold mb-6 text-light-text dark:text-dark-text flex items-center gap-2">
                 <Icon name="chart-line" className="text-brand-primary" />
@@ -204,8 +208,9 @@ const Analytics: React.FC<AnalyticsProps> = ({ addAlert }) => {
                 </ResponsiveContainer>
             </div>
         </Card>
-      </div>
+      </motion.div>
 
+      <motion.div variants={itemVariants}>
       <Card>
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <h3 className="text-lg font-semibold text-light-text dark:text-dark-text flex items-center gap-2">
@@ -301,7 +306,8 @@ const Analytics: React.FC<AnalyticsProps> = ({ addAlert }) => {
             </table>
         </div>
       </Card>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { motion } from 'motion/react';
 import Card from '../components/Card';
 import Icon from '../components/Icon';
 import ThemeSwitch from '../components/ThemeSwitch';
@@ -25,6 +26,16 @@ interface AppSettingsProps {
 const AppSettings: React.FC<AppSettingsProps> = ({ addAlert, theme, onToggleTheme, accentColor, setAccentColor }) => {
     const { updateAccent } = useUser();
     const commonLabelClasses = "text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary";
+    
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
+    };
+    
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } }
+    };
 
     const handleAccentChange = async (color: AccentColor) => {
         setAccentColor(color);
@@ -55,9 +66,10 @@ const AppSettings: React.FC<AppSettingsProps> = ({ addAlert, theme, onToggleThem
     };
 
     return (
-        <div className="space-y-8 max-w-4xl mx-auto animate-fade-in-up">
-            <h2 className="text-3xl font-bold text-light-text dark:text-dark-text">Application Settings</h2>
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8 max-w-4xl mx-auto">
+            <motion.h2 variants={itemVariants} className="text-3xl font-bold text-light-text dark:text-dark-text">Application Settings</motion.h2>
             
+            <motion.div variants={itemVariants}>
             <Card>
                 <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Appearance</h3>
                 <div className="space-y-6">
@@ -91,7 +103,9 @@ const AppSettings: React.FC<AppSettingsProps> = ({ addAlert, theme, onToggleThem
                     </div>
                 </div>
             </Card>
+            </motion.div>
 
+            <motion.div variants={itemVariants}>
             <Card>
                 <h3 className="text-lg font-semibold mb-4 text-light-text dark:text-dark-text">Data & Cache</h3>
                 <div className="space-y-4">
@@ -107,7 +121,8 @@ const AppSettings: React.FC<AppSettingsProps> = ({ addAlert, theme, onToggleThem
                     </div>
                 </div>
             </Card>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 
